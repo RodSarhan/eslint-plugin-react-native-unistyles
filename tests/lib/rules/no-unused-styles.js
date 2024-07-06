@@ -22,7 +22,7 @@ const tests = {
   valid: [{
     code: `
       const MyComponent = () => {
-          const {styles} = useStyles(stylesheet);
+          const {styles} = useStyles(styleSheet);
           return (
               <Text textStyle={styles.name}>Hello</Text>
           );
@@ -34,7 +34,7 @@ const tests = {
   }, {
     code: `
     const MyComponent = () => {
-      const {styles} = useStyles(stylesheet);
+      const {styles} = useStyles(styleSheet);
       return <Text textStyle={styles.name}>Hello</Text>;
     };
     const styleSheet = createStyleSheet((theme) => ({
@@ -44,7 +44,7 @@ const tests = {
   }, {
     code: `
     const MyComponent = () => {
-      const {styles} = useStyles(stylesheet);
+      const {styles} = useStyles(styleSheet);
       return <Text textStyle={styles.name}>Hello</Text>;
     };
     const styleSheet = createStyleSheet((theme) => {
@@ -56,7 +56,7 @@ const tests = {
   }, {
     code: `
     const MyComponent = () => {
-      const {styles} = useStyles(stylesheet);
+      const {styles} = useStyles(styleSheet);
       return <Text textStyle={styles.name}>Hello</Text>;
     };
     const styleSheet = createStyleSheet((theme) => {
@@ -66,24 +66,54 @@ const tests = {
       };
     });
     `,
-  },
-  // TODO: Support this case
-  // {
-  //   code: `
-  //   const styleSheet = createStyleSheet({
-  //     text: {}
-  //   });
+  }, {
+    code: `
+    const styleSheet = createStyleSheet({
+      text: {}
+    });
 
-  //   const MyComponent = () => {
-  //     const {styles: myStyles} = useStyles(styleSheet);
-  //     return <Text textStyles={myStyles.text}>Hello</Text>
-  //   };
-  //   `,
-  // },
+    const MyComponent = () => {
+      const {styles: myStyles} = useStyles(styleSheet);
+      return <Text textStyles={myStyles.text}>Hello</Text>
+    };
+    `,
+  }, {
+    code: `
+    const styleSheet = createStyleSheet((theme) => ({
+      text: {},
+      viewStyle: {}
+    }));
+
+    const MyComponent = () => {
+      const {theme, styles: myStyles} = useStyles(styleSheet);
+      return <View style={myStyles.viewStyle}><Text style={myStyles.text}>Hello</Text></View>
+    };
+    `,
+  }, {
+    code: `
+    const styleSheet1 = createStyleSheet((theme) => ({
+      text: {},
+    }));
+
+    const styleSheet2 = createStyleSheet((theme) => ({
+      viewStyle: {}
+    }));
+
+    const MyComponent = () => {
+      const {theme, styles: myStyles1} = useStyles(styleSheet1);
+      const textStyle = myStyles1.text
+      return <Text style={textStyle}>Hello</Text>
+    };
+    const MyComponent2 = () => {
+      const {theme, styles: myStyles2} = useStyles(styleSheet2);
+      return <View style={myStyles2.viewStyle}/>
+    };
+    `,
+  },
   {
     code: `
     const MyComponent = () => {
-      const {styles} = useStyles(stylesheet);
+      const {styles} = useStyles(styleSheet);
       return <Text style={styles.name}>Hello</Text>;
     };
     const styleSheet = createStyleSheet(function returnStyles(theme) {
@@ -95,7 +125,7 @@ const tests = {
   }, {
     code: `
     const MyComponent = () => {
-      const {styles} = useStyles(stylesheet);
+      const {styles} = useStyles(styleSheet);
       return <Text style={styles.name}>Hello</Text>;
     };
     const styleSheet = createStyleSheet(function returnStyles(theme) {
@@ -111,7 +141,7 @@ const tests = {
           name: {},
       });
       const MyComponent = () => {
-          const {styles} = useStyles(stylesheet);
+          const {styles} = useStyles(styleSheet);
           return (
               <Text textStyle={styles.name}>Hello</Text>
           );
@@ -124,13 +154,13 @@ const tests = {
           welcome: {},
       });
       const MyComponent = () => {
-          const {styles} = useStyles(stylesheet);
+          const {styles} = useStyles(styleSheet);
           return (
               <Text style={styles.name}>Hello</Text>
           );
       };
       const MyOtherComponent = () => {
-          const {styles} = useStyles(stylesheet);
+          const {styles} = useStyles(styleSheet);
           return (
               <Text style={styles.welcome}>Hello</Text>
           );
@@ -142,7 +172,7 @@ const tests = {
           text: {},
       });
       const MyComponent = () => {
-          const {styles} = useStyles(stylesheet);
+          const {styles} = useStyles(styleSheet);
           return (
               <Text style={[styles.text, textStyle]}>Hello</Text>
           );
@@ -154,7 +184,7 @@ const tests = {
           text: {},
       });
       const MyComponent = () => {
-          const {styles} = useStyles(stylesheet);
+          const {styles} = useStyles(styleSheet);
           const condition1 = true;
           const condition2 = true;
 
@@ -170,7 +200,7 @@ const tests = {
           text2: {},
       });
       const MyComponent = () => {
-          const {styles} = useStyles(stylesheet);
+          const {styles} = useStyles(styleSheet);
           const condition = true;
 
           return (
@@ -189,7 +219,7 @@ const tests = {
           },
       });
       export const MyComponent = ({isRed}) => {
-          const {styles} = useStyles(stylesheet);
+          const {styles} = useStyles(styleSheet);
 
           return (
               <Text style={isRed ? styles.style1 : styles.style2}>Hello</Text>
@@ -205,7 +235,7 @@ const tests = {
   }, {
     code: `
       const MyComponent = () => {
-          const {styles} = useStyles(stylesheet);
+          const {styles} = useStyles(styleSheet);
           const condition = true;
           const myStyle = condition ? styles.text1 : styles.text2;
 
@@ -226,7 +256,7 @@ const tests = {
           ...additionalStyles,
       });
       const MyComponent = () => {
-          const {styles} = useStyles(stylesheet);
+          const {styles} = useStyles(styleSheet);
 
           return (
               <Text style={styles.text}>Hello</Text>
@@ -241,14 +271,14 @@ const tests = {
           text: {},
       });
       const MyComponent = () => {
-          const {styles} = useStyles(stylesheet);
+          const {styles} = useStyles(styleSheet);
           return (
               <Text textStyle={styles.someOtherStyle}>Hello</Text>
           );
       };
     `,
     errors: [{
-      message: 'Unused style detected: styles.text',
+      message: 'Unused style detected: styleSheet.text',
     }],
   }, {
     code: `
@@ -258,30 +288,68 @@ const tests = {
           };
       });
       const MyComponent = () => {
-          const {styles} = useStyles(stylesheet);
+          const {styles} = useStyles(styleSheet);
           return (
               <Text style={styles.someOtherStyle}>Hello</Text>
           );
       };
     `,
     errors: [{
-      message: 'Unused style detected: styles.text',
+      message: 'Unused style detected: styleSheet.text',
     }],
   }, {
     code: `
-      const styleSheet = createStyleSheet({
-          foo: {},
-          bar: {},
+      const styleSheet = createStyleSheet(() => {
+          return {
+              text: {},
+              other: {},
+          };
       });
       const MyComponent = () => {
-          const {styles} = useStyles(stylesheet);
+          const {styles: myStyles} = useStyles(styleSheet);
+          return (
+              <Text style={myStyles.other}>Hello</Text>
+          );
+      };
+    `,
+    errors: [{
+      message: 'Unused style detected: styleSheet.text',
+    }],
+  }, {
+    code: `
+      const styleSheet = createStyleSheet(() => {
+          return {
+              text: {},
+              other: {},
+          };
+      });
+      const MyComponent = () => {
+          const {styles: myStyles} = useStyles(styleSheet);
+          return (
+              <Text style={myStyles.someThirdStyle}>Hello</Text>
+          );
+      };
+    `,
+    errors: [{
+      message: 'Unused style detected: styleSheet.text',
+    }, {
+      message: 'Unused style detected: styleSheet.other',
+    }],
+  }, {
+    code: `
+      const styleSheet = createStyleSheet(() => ({
+          foo: {},
+          bar: {},
+      }));
+      const MyComponent = () => {
+          const {styles} = useStyles(styleSheet);
           return (
               <Text style={styles.foo}>Hello</Text>
           );
       };
     `,
     errors: [{
-      message: 'Unused style detected: styles.bar',
+      message: 'Unused style detected: styleSheet.bar',
     }],
   }],
 };
