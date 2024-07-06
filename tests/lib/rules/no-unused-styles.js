@@ -317,6 +317,21 @@ const tests = {
     }],
   }, {
     code: `
+      const styleSheet = createStyleSheet((theme) => ({
+        container: {},
+      }));
+      const MyComponent = () => {
+          const {styles: myStyles} = useStyles(styleSheet);
+          return (
+              <View style={styles.container}/>
+          );
+      };
+    `,
+    errors: [{
+      message: 'Unused style detected: styleSheet.container',
+    }],
+  }, {
+    code: `
       const styleSheet = createStyleSheet(() => {
           return {
               text: {},
