@@ -228,6 +228,54 @@ const tests = {
     `,
   }, {
     code: `
+      const styleSheet1 = createStyleSheet((theme) => ({someStyle1: {}}));
+      const styleSheet2 = createStyleSheet((theme) => ({someStyle1: {}}));
+
+      const MyComponent1 = () => {
+          const {styles} = useStyles(styleSheet1);
+          return <View style={styles.someStyle1} />;
+      };
+
+      const MyComponent2 = () => {
+          const {styles} = useStyles(styleSheet2);
+          return <View style={styles.someStyle1} />;
+      };
+    `,
+  }, {
+    code: `
+      const styleSheet1 = createStyleSheet((theme) => ({someStyle1: {}}));
+      const styleSheet2 = createStyleSheet((theme) => ({someStyle2: {}}));
+
+      const MyComponent1 = () => {
+          const {styles} = useStyles(styleSheet1);
+          return <View style={styles.someStyle1} />;
+      };
+
+      const MyComponent2 = () => {
+          const {styles} = useStyles(styleSheet2);
+          return <View style={styles.someStyle2} />;
+      };
+    `,
+  }, {
+    code: `
+      const styleSheet = createStyleSheet({
+          style1: {
+              color: 'red',
+          },
+          style2: {
+              color: 'blue',
+          },
+      });
+      export function MyComponent ({isRed}) {
+          const {styles} = useStyles(styleSheet);
+
+          return (
+              <Text style={isRed ? styles.style1 : styles.style2}>Hello</Text>
+          );
+      };
+    `,
+  }, {
+    code: `
       const styleSheet = createStyleSheet({
           name: {},
       });

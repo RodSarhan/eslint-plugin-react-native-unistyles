@@ -1,6 +1,6 @@
 {
   "name": "eslint-plugin-react-native-unistyles",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "author": "RodSarhan",
   "license": "MIT",
   "description": "React Native Unistyles rules for ESLint",
@@ -8,7 +8,8 @@
   "scripts": {
     "lint": "eslint ./lib && eslint ./tests",
     "test": "npm run lint && npm run unit-test",
-    "unit-test": "nyc --silent --reporter=text mocha tests/**/*.js"
+    "unit-test": "nyc --silent --reporter=text mocha tests/**/*.js",
+    "test-one-case": "nyc --silent --reporter=text mocha tests/lib/rules/test-one-case.js"
   },
   "files": [
     "LICENSE",
