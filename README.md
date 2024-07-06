@@ -1,3 +1,5 @@
+<img alt="react-native-unistyles" src="assets/banner.png">
+
 # ESLint plugin for React Native Unistyles
 
 React Native Unistyles linting rules for ESLint. This repository is structured like (and contains code from) [eslint-plugin-react-native](https://github.com/Intellicode/eslint-plugin-react-native).
