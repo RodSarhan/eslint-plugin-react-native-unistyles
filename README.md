@@ -1,6 +1,6 @@
 # ESLint plugin for React Native Unistyles
 
-React Native Unistyles linting rules for ESLint. This repository is structured like (and contains code from) the excellent [eslint-plugin-react-native](https://github.com/Intellicode/eslint-plugin-react-native).
+React Native Unistyles linting rules for ESLint. This repository is structured like (and contains code from) [eslint-plugin-react-native](https://github.com/Intellicode/eslint-plugin-react-native).
 
 ## Installation
 

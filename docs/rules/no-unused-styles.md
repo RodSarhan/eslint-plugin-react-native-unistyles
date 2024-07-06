@@ -36,21 +36,8 @@ const styleSheet = createStyleSheet({
 });
 
 const MyComponent = () => {
-  const {styles} = useStyles(styleSheet);
-  return <Text textStyle={styles.text}>Hello</Text>
-};
-```
-
-This rules can't handle renaming the styles object while destructuting, so this won't work (planning to enable this pattern in the future)
-
-```js
-const styleSheet = createStyleSheet({
-  text: {}
-});
-
-const MyComponent = () => {
   const {styles: myStyles} = useStyles(styleSheet);
-  return <Text style={myStyles.text}>Hello</Text>
+  return <Text textStyle={myStyles.text}>Hello</Text>
 };
 ```
 
