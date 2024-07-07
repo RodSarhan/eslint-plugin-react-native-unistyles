@@ -410,11 +410,11 @@ const tests = {
     }],
   }, {
     code: `
-      const styleSheet = createStyleSheet(() => ({
+      export const styleSheet = createStyleSheet(() => ({
           foo: {},
           bar: {},
       }));
-      const MyComponent = () => {
+      export const MyComponent = () => {
           const {styles} = useStyles(styleSheet);
           return (
               <Text style={styles.foo}>Hello</Text>
