@@ -282,6 +282,16 @@ const tests = {
     `,
   }, {
     code: `
+      const styleSheet = createStyleSheet({});
+      const MyComponent = () => {
+          const {styles} = useStyles(styleSheet);
+          return (
+              <Text style={styles.name}>Hello</Text>
+          );
+      }
+    `,
+  }, {
+    code: `
       const MyComponent = () => {
           const {styles} = useStyles(styleSheet);
           const condition = true;
