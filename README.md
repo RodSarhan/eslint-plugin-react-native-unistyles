@@ -41,7 +41,7 @@ Then, enable all of the rules that you would like to use.
   "rules": {
     "react-native-unistyles/no-unused-styles": "warn",
     "react-native-unistyles/sort-styles": [
-      "error",
+      "warn",
       "asc",
       { "ignoreClassNames": false, "ignoreStyleProperties": false }
     ],
