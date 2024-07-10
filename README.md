@@ -40,6 +40,11 @@ Then, enable all of the rules that you would like to use.
 {
   "rules": {
     "react-native-unistyles/no-unused-styles": "warn",
+    "react-native-unistyles/sort-styles": [
+      "error",
+      "asc",
+      { "ignoreClassNames": false, "ignoreStyleProperties": false }
+    ],
   }
 }
 ```
@@ -47,6 +52,7 @@ Then, enable all of the rules that you would like to use.
 ## List of supported rules
 
 - [no-unused-styles](docs/rules/no-unused-styles.md): Detect `createStyleSheet` styles which are not used in your React components
+- [sort-styles](docs/rules/sort-styles.md): Detect `createStyleSheet` styles which are not in correct sort order
 
 ## Shareable configurations
 
