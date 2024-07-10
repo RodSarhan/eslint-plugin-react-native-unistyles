@@ -2,7 +2,9 @@
 
 # ESLint plugin for React Native Unistyles
 
-React Native Unistyles linting rules for ESLint. This repository is structured like (and contains code from) [eslint-plugin-react-native](https://github.com/Intellicode/eslint-plugin-react-native).
+![NPM Downloads](https://img.shields.io/npm/d18m/eslint-plugin-react-native-unistyles) [![GitHub Repo stars](https://img.shields.io/github/stars/RodSarhan/eslint-plugin-react-native-unistyles?style=social)](https://github.com/RodSarhan/eslint-plugin-react-native-unistyles) ![NPM Version](https://img.shields.io/npm/v/eslint-plugin-react-native-unistyles) [![License](https://img.shields.io/github/license/RodSarhan/eslint-plugin-react-native-unistyles)](https://github.com/RodSarhan/eslint-plugin-react-native-unistyles/blob/main/LICENSE)
+
+[React Native Unistyles](https://github.com/jpudysz/react-native-unistyles) linting rules for ESLint. This repository is structured like (and contains code from) [eslint-plugin-react-native](https://github.com/Intellicode/eslint-plugin-react-native).
 
 ## Installation
 
