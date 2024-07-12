@@ -4,6 +4,7 @@
 
 const allRules = {
   'no-unused-styles': require('./lib/rules/no-unused-styles'),
+  'sort-styles': require('./lib/rules/sort-styles'),
 };
 
 function configureAsError(rules) {
@@ -24,6 +25,7 @@ module.exports = {
   rules: allRules,
   rulesConfig: {
     'no-unused-styles': 0,
+    'sort-styles': 0,
   },
   configs: {
     all: {
