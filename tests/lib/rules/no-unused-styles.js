@@ -321,6 +321,19 @@ const tests = {
           );
       };
     `,
+  }, {
+    code: `
+      const styleSheet = createStyleSheet({
+          text: {},
+      });
+      export default function MyComponent() {
+          const {styles} = useStyles(styleSheet);
+
+          return (
+              <Text style={styles.text}>Hello</Text>
+          );
+      };
+    `,
   }],
 
   invalid: [{
