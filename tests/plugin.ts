@@ -1,7 +1,7 @@
 /* eslint-env mocha */
 
 import assert from 'assert';
-import plugin from '..';
+import plugin from '../src';
 import {rules} from '../src/rules';
 
 const ruleNames = ['no-unused-styles', 'sort-styles'] as const;
