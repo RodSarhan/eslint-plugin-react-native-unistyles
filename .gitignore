@@ -37,3 +37,6 @@ node_modules
 
 # Distribution files
 /dist
+
+# Env files
+.env-cmdrc
