@@ -1,4 +1,5 @@
 # Require createStyleSheet keys to be sorted
+
 It's like [sort-keys](https://eslint.org/docs/rules/sort-keys), but just for react-native-unistyles.
 
 Keeping your style definitions sorted is a common convention that helps with readability. This rule lets you enforce an ascending (default) or descending alphabetical order for both "class names" and style properties.
@@ -43,7 +44,7 @@ const styles = StyleSheet.create({
 
 ## Options
 
-```
+```typescript
 {
     "react-native-unistyles/sort-styles": ["error", "asc", { "ignoreClassNames": false, "ignoreStyleProperties": false }]
 }
@@ -115,7 +116,7 @@ const styles = StyleSheet.create({
 });
 ```
 
-# ignoreStyleProperties
+## ignoreStyleProperties
 
 `/* eslint react-native-unistyles/sort-styles: ["error", "asc", { "ignoreStyleProperties": true }] */`
 

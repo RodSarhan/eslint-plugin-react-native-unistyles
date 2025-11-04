@@ -7,37 +7,20 @@ When working on a component over a longer period of time, you could end up with 
 The following patterns are considered warnings:
 
 ```js
-const styleSheet = createStyleSheet({
-  text: {}
-});
+const styles = StyleSheet.create({text: {}});
 
 const MyComponent = () => {
-  const {styles} = useStyles(styleSheet);
-  return <Text>Hello</Text>
+    return <Text>Hello</Text>;
 };
 ```
 
 The following patterns are not considered warnings:
 
 ```js
-const styleSheet = createStyleSheet({
-  text: {}
-});
+const styles = StyleSheet.create({text: {}});
 
 const MyComponent = () => {
-  const {styles} = useStyles(styleSheet);
-  return <Text style={styles.text}>Hello</Text>
-};
-```
-
-```js
-const styleSheet = createStyleSheet({
-  text: {}
-});
-
-const MyComponent = () => {
-  const {styles: myStyles} = useStyles(styleSheet);
-  return <Text textStyle={myStyles.text}>Hello</Text>
+    return <Text style={styles.text}>Hello</Text>;
 };
 ```
 

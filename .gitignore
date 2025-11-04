@@ -34,3 +34,9 @@ node_modules
 
 # Nyc/istanbul
 .nyc_output
+
+# Distribution files
+/dist
+
+# Env files
+.env-cmdrc
