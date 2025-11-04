@@ -16,10 +16,11 @@
     "lint:ts": "tsc --noEmit",
     "lint:eslint": "eslint '**/*.{js,ts}'",
     "lint:prettier": "prettier '**/*.{js,ts,json,yaml,md}'",
-    "format": "yarn run lint:prettier -- --write",
+    "format": "yarn run lint:prettier --write",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "release": "release-it"
   },
   "repository": {
     "type": "git",
@@ -45,6 +46,7 @@
     "eslint-plugin-react-native": "^5.0.0",
     "jest": "^30.2.0",
     "prettier": "^3.6.2",
+    "release-it": "^19.0.5",
     "rimraf": "^6.1.0",
     "ts-jest": "^29.4.5",
     "ts-node": "^10.9.2",
@@ -66,5 +68,8 @@
   ],
   "dependencies": {
     "@typescript-eslint/utils": "^8.46.3"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org"
   }
 }
