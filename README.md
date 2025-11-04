@@ -25,35 +25,27 @@ yarn add eslint-plugin-react-native-unistyles -D
 Add `plugins` section and specify react-native-unistyles as a plugin.
 
 ```json
-{
-  "plugins": ["react-native-unistyles"]
-}
+{"plugins": ["react-native-unistyles"]}
 ```
 
 If it is not already the case you must also configure `ESLint` to support JSX.
 
 ```json
-{
-  "parserOptions": {
-    "ecmaFeatures": {
-      "jsx": true
-    }
-  }
-}
+{"parserOptions": {"ecmaFeatures": {"jsx": true}}}
 ```
 
 Then, enable all of the rules that you would like to use.
 
 ```json
 {
-  "rules": {
-    "react-native-unistyles/no-unused-styles": "warn",
-    "react-native-unistyles/sort-styles": [
-      "warn",
-      "asc",
-      { "ignoreClassNames": false, "ignoreStyleProperties": false }
-    ],
-  }
+    "rules": {
+        "react-native-unistyles/no-unused-styles": "warn",
+        "react-native-unistyles/sort-styles": [
+            "warn",
+            "asc",
+            {"ignoreClassNames": false, "ignoreStyleProperties": false}
+        ]
+    }
 }
 ```
 

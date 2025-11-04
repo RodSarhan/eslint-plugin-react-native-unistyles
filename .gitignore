@@ -34,3 +34,6 @@ node_modules
 
 # Nyc/istanbul
 .nyc_output
+
+# Distribution files
+/dist
