@@ -39,6 +39,7 @@
         "@typescript-eslint/parser": "^8.46.3",
         "@typescript-eslint/rule-tester": "^8.46.3",
         "@typescript-eslint/types": "^8.46.3",
+        "env-cmd": "^11.0.0",
         "eslint": "^9.39.1",
         "eslint-config-prettier": "^10.1.8",
         "eslint-doc-generator": "^2.3.0",
