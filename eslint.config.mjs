@@ -1,9 +1,10 @@
-import {defineConfig} from 'eslint/config';
+import {defineConfig, globalIgnores} from 'eslint/config';
 import nodePlugin from 'eslint-plugin-n';
 import eslintPlugin from 'eslint-plugin-eslint-plugin';
 import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
 import eslint from '@eslint/js';
 import tseslint from 'typescript-eslint';
+import unistylesPlugin from './dist/index.js';
 
 export default defineConfig([
     eslint.configs.recommended,
@@ -11,6 +12,8 @@ export default defineConfig([
     nodePlugin.configs['flat/recommended-script'],
     eslintPlugin.configs.recommended,
     eslintPluginPrettierRecommended,
+    unistylesPlugin.configs.recommended,
+    globalIgnores(['node_modules/', 'dist/']),
     {
         plugins: {},
         rules: {
@@ -31,6 +34,6 @@ export default defineConfig([
             curly: 'off',
             quotes: 'off',
         },
-        ignores: ['dist/*', 'node_modules'],
+        ignores: ['dist/', 'node_modules/'],
     },
 ]);

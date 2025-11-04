@@ -1,75 +1,79 @@
 {
-  "name": "eslint-plugin-react-native-unistyles",
-  "version": "3.0.0",
-  "author": "RodSarhan",
-  "license": "MIT",
-  "description": "React Native Unistyles rules for ESLint",
-  "main": "dist/index.js",
-  "files": [
-    "dist"
-  ],
-  "scripts": {
-    "clean": "rimraf dist",
-    "prebuild": "yarn run clean",
-    "build": "tsc",
-    "lint": "yarn run lint:ts && yarn run lint:eslint && yarn run lint:prettier",
-    "lint:ts": "tsc --noEmit",
-    "lint:eslint": "eslint '**/*.{js,ts}'",
-    "lint:prettier": "prettier '**/*.{js,ts,json,yaml,md}'",
-    "format": "yarn run lint:prettier --write",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage",
-    "release": "release-it"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/RodSarhan/eslint-plugin-react-native-unistyles"
-  },
-  "homepage": "https://github.com/RodSarhan/eslint-plugin-react-native-unistyles",
-  "bugs": "https://github.com/RodSarhan/eslint-plugin-react-native-unistyles/issues",
-  "devDependencies": {
-    "@eslint/js": "^9.39.1",
-    "@types/eslint": "^9.6.1",
-    "@types/jest": "^30.0.0",
-    "@types/node": "^24.9.2",
-    "@typescript-eslint/parser": "^8.46.3",
-    "@typescript-eslint/rule-tester": "^8.46.3",
-    "@typescript-eslint/types": "^8.46.3",
-    "eslint": "^9.39.1",
-    "eslint-config-prettier": "^10.1.8",
-    "eslint-doc-generator": "^2.3.0",
-    "eslint-plugin-eslint-plugin": "^7.2.0",
-    "eslint-plugin-n": "^17.23.1",
-    "eslint-plugin-prettier": "^5.5.4",
-    "eslint-plugin-react": "^7.26.1",
-    "eslint-plugin-react-native": "^5.0.0",
-    "jest": "^30.2.0",
-    "prettier": "^3.6.2",
-    "release-it": "^19.0.5",
-    "rimraf": "^6.1.0",
-    "ts-jest": "^29.4.5",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.2.2",
-    "typescript-eslint": "^8.46.3"
-  },
-  "peerDependencies": {
-    "eslint": "^3.17.0 || ^4 || ^5 || ^6 || ^7 || ^8 || ^9"
-  },
-  "keywords": [
-    "eslint",
-    "eslint-plugin",
-    "eslintplugin",
-    "react",
-    "react-native",
-    "react native",
-    "unistyles",
-    "react-native-unistyles"
-  ],
-  "dependencies": {
-    "@typescript-eslint/utils": "^8.46.3"
-  },
-  "publishConfig": {
-    "registry": "https://registry.npmjs.org"
-  }
+    "name": "eslint-plugin-react-native-unistyles",
+    "version": "3.0.0",
+    "author": "RodSarhan",
+    "license": "MIT",
+    "description": "React Native Unistyles rules for ESLint",
+    "main": "dist/index.js",
+    "files": [
+        "dist"
+    ],
+    "scripts": {
+        "clean": "rimraf dist",
+        "prebuild": "yarn run clean",
+        "build": "tsc --project ./tsconfig.build.json",
+        "lint": "yarn run lint:ts && yarn run lint:eslint && yarn run lint:prettier",
+        "lint:ts": "tsc --project ./tsconfig.check.json",
+        "lint:eslint": "eslint '**/*.{js,ts}' --ignore-pattern 'examples/*'",
+        "lint:prettier": "prettier '**/*.{js,ts,json,yaml,md}'",
+        "format": "yarn run lint:prettier --write",
+        "test": "jest",
+        "test:watch": "jest --watch",
+        "test:coverage": "jest --coverage",
+        "release": "release-it --config ./release-it.json"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/RodSarhan/eslint-plugin-react-native-unistyles"
+    },
+    "homepage": "https://github.com/RodSarhan/eslint-plugin-react-native-unistyles",
+    "bugs": "https://github.com/RodSarhan/eslint-plugin-react-native-unistyles/issues",
+    "devDependencies": {
+        "@eslint/js": "^9.39.1",
+        "@release-it/conventional-changelog": "^10.0.1",
+        "@types/eslint": "^9.6.1",
+        "@types/jest": "^30.0.0",
+        "@types/node": "^24.9.2",
+        "@types/react": "^19.2.2",
+        "@typescript-eslint/parser": "^8.46.3",
+        "@typescript-eslint/rule-tester": "^8.46.3",
+        "@typescript-eslint/types": "^8.46.3",
+        "eslint": "^9.39.1",
+        "eslint-config-prettier": "^10.1.8",
+        "eslint-doc-generator": "^2.3.0",
+        "eslint-plugin-eslint-plugin": "^7.2.0",
+        "eslint-plugin-n": "^17.23.1",
+        "eslint-plugin-prettier": "^5.5.4",
+        "eslint-plugin-react": "^7.26.1",
+        "eslint-plugin-react-native": "^5.0.0",
+        "jest": "^30.2.0",
+        "prettier": "^3.6.2",
+        "react-native": "^0.82.1",
+        "react-native-unistyles": "^3.0.17",
+        "release-it": "^19.0.5",
+        "rimraf": "^6.1.0",
+        "ts-jest": "^29.4.5",
+        "ts-node": "^10.9.2",
+        "typescript": "^5.2.2",
+        "typescript-eslint": "^8.46.3"
+    },
+    "peerDependencies": {
+        "eslint": "^3.17.0 || ^4 || ^5 || ^6 || ^7 || ^8 || ^9"
+    },
+    "keywords": [
+        "eslint",
+        "eslint-plugin",
+        "eslintplugin",
+        "react",
+        "react-native",
+        "react native",
+        "unistyles",
+        "react-native-unistyles"
+    ],
+    "dependencies": {
+        "@typescript-eslint/utils": "^8.46.3"
+    },
+    "publishConfig": {
+        "registry": "https://registry.npmjs.org"
+    }
 }

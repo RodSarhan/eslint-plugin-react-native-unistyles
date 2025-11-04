@@ -1,37 +1,63 @@
-import type {RuleModule} from '@typescript-eslint/utils/ts-eslint';
 import type {ESLint} from 'eslint';
-import {rules} from './rules';
+import {rules as _rules} from './rules';
 
-type RuleKey = keyof typeof rules;
-type RuleType = RuleModule<any, any, any>;
-type RulesType = Record<RuleKey, RuleType>;
+const _plugin: ESLint.Plugin = {
+    meta: {name: 'eslint-plugin-react-native-unistyles', version: '3.0.0'},
+    rules: _rules as unknown as ESLint.Plugin['rules'],
+    // configs: {} as {all: Linter.Config; recommended: Linter.Config; 'flat/recommended': Linter.Config},
+    configs: {},
+};
 
-interface Plugin extends Omit<ESLint.Plugin, 'rules'> {
-    rules: RulesType;
-    rulesConfig: Record<string, number>;
-}
-
-function configureAsError(passedRules: RulesType) {
-    const result: ESLint.ConfigData['rules'] = {};
-    for (const key in passedRules) {
-        if (!{}.hasOwnProperty.call(passedRules, key)) {
-            continue;
-        }
-
-        result['react-native-unistyles/' + key] = 2;
-    }
-    return result;
-}
-
-const allRulesConfig = configureAsError(rules);
-
-const plugin: Plugin = {
-    meta: {name: 'eslint-plugin-react-native-unistyles', version: '0.3.0'},
-    rules: rules,
-    rulesConfig: {'no-unused-styles': 0, 'sort-styles': 0},
+const plugin: ESLint.Plugin = {
+    ..._plugin,
     configs: {
-        all: {plugins: ['react-native-unistyles'], parserOptions: {ecmaFeatures: {jsx: true}}, rules: allRulesConfig},
+        // flat config format
+        recommended: [
+            {
+                plugins: {'react-native-unistyles': _plugin},
+                rules: {
+                    'react-native-unistyles/no-unused-styles': 'error',
+                    'react-native-unistyles/sort-styles': 'off',
+                },
+                languageOptions: {parserOptions: {ecmaFeatures: {jsx: true}}},
+            },
+        ],
+
+        // eslintrc format
+        'legacy-recommended': {
+            plugins: ['react-native-unistyles'],
+            rules: {'react-native-unistyles/no-unused-styles': 'error', 'react-native-unistyles/sort-styles': 'off'},
+            parserOptions: {ecmaFeatures: {jsx: true}},
+        },
+
+        all: [
+            {
+                plugins: {'react-native-unistyles': _plugin},
+                rules: {
+                    'react-native-unistyles/no-unused-styles': 'error',
+                    ['react-native-unistyles/sort-styles']: [
+                        'error',
+                        'asc',
+                        {ignoreClassNames: false, ignoreStyleProperties: false},
+                    ],
+                },
+                languageOptions: {parserOptions: {ecmaFeatures: {jsx: true}}},
+            },
+        ],
+
+        'legacy-all': {
+            plugins: ['react-native-unistyles'],
+            rules: {
+                'react-native-unistyles/no-unused-styles': 'error',
+                ['react-native-unistyles/sort-styles']: [
+                    'error',
+                    'asc',
+                    {ignoreClassNames: false, ignoreStyleProperties: false},
+                ],
+            },
+            parserOptions: {ecmaFeatures: {jsx: true}},
+        },
     },
 };
 
-export default plugin;
+module.exports = plugin;
