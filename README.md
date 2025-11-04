@@ -8,9 +8,8 @@
 
 ## Supported Versions
 
-This plugin only supports Unistyles v2 for now, there are no plans to support v3 or v4 until i need that for my own work.
-
-However, you're welcome to open a PR or take over the project to add support for those versions if you'd like.
+This plugin supports Unistyles v3 starting from v3.0.1.
+For v2 support you can install v0.2.9
 
 ## Installation
 
@@ -20,13 +19,25 @@ Install eslint-plugin-react-native-unistyles
 yarn add eslint-plugin-react-native-unistyles -D
 ```
 
-## Configuration
+## Flat Configs
 
-Add `plugins` section and specify react-native-unistyles as a plugin.
+The plugin supports flat configs
+Example:
 
-```json
-{"plugins": ["react-native-unistyles"]}
+```js
+const {defineConfig} = require('eslint/config');
+const expoConfig = require('eslint-config-expo/flat');
+const reactCompiler = require('eslint-plugin-react-compiler');
+const unistyles = require('eslint-plugin-react-native-unistyles');
+
+module.exports = defineConfig([
+    expoConfig,
+    reactCompiler.configs.recommended,
+    unistyles.configs.recommended,
+])
 ```
+
+For older eslint versions you can use the 'recommended-legacy' or 'recommended-all' configs
 
 If it is not already the case you must also configure `ESLint` to support JSX.
 
@@ -53,21 +64,3 @@ Then, enable all of the rules that you would like to use.
 
 - [no-unused-styles](docs/rules/no-unused-styles.md): Detect `createStyleSheet` styles which are not used in your React components
 - [sort-styles](docs/rules/sort-styles.md): Detect `createStyleSheet` styles which are not in correct sort order
-
-## Shareable configurations
-
-### All
-
-This plugin also exports an `all` configuration that includes every available rule.
-
-```js
-{
-  "plugins": [
-    /* ... */
-    "react-native-unistyles"
-  ],
-  "extends": [/* ... */, "plugin:react-native-unistyles/all"]
-}
-```
-
-**Note**: These configurations will import `eslint-plugin-react-native-unistyles` and enable JSX in [parser options](http://eslint.org/docs/user-guide/configuring#specifying-parser-options).
