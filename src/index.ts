@@ -1,6 +1,6 @@
 import type {RuleModule} from '@typescript-eslint/utils/ts-eslint';
 import type {ESLint} from 'eslint';
-import {rules} from './src/rules';
+import {rules} from './rules';
 
 type RuleKey = keyof typeof rules;
 type RuleType = RuleModule<any, any, any>;
