@@ -1,8 +1,8 @@
+import type {TSESTree} from '@typescript-eslint/types';
 import type eslint from 'eslint';
-import type estree from 'estree';
 
 declare global {
-    interface ASTNode extends estree.BaseNode {
+    interface ASTNode extends TSESTree.Node {
         [_: string]: any; // TODO: fixme
     }
     type Scope = eslint.Scope.Scope;
