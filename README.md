@@ -8,7 +8,8 @@
 
 ## Supported Versions
 
-This plugin supports Unistyles v3 starting from v3.0.1.
+This plugin supports Unistyles v3 starting from v3.
+
 For v2 support you can install v0.2.9
 
 ## Installation
@@ -22,6 +23,7 @@ yarn add eslint-plugin-react-native-unistyles -D
 ## Flat Configs
 
 The plugin supports flat configs
+
 Example:
 
 ```js
@@ -37,15 +39,9 @@ module.exports = defineConfig([
 ])
 ```
 
-For older eslint versions you can use the 'recommended-legacy' or 'recommended-all' configs
+For older eslint versions you can use the 'legacy-recommended' or 'legacy-all' configs
 
-If it is not already the case you must also configure `ESLint` to support JSX.
-
-```json
-{"parserOptions": {"ecmaFeatures": {"jsx": true}}}
-```
-
-Then, enable all of the rules that you would like to use.
+Or manually add the rules
 
 ```json
 {
@@ -58,6 +54,12 @@ Then, enable all of the rules that you would like to use.
         ]
     }
 }
+```
+
+If it is not already the case you must also configure `ESLint` to support JSX.
+
+```json
+{"parserOptions": {"ecmaFeatures": {"jsx": true}}}
 ```
 
 ## List of supported rules
