@@ -2,7 +2,9 @@ import {ESLintUtils} from '@typescript-eslint/utils';
 import type {ReportFixFunction} from '@typescript-eslint/utils/ts-eslint';
 import {astHelpers} from '../util/stylesheet';
 
-const createRule = ESLintUtils.RuleCreator((name) => `https://my-website.io/eslint/${name}`);
+const createRule = ESLintUtils.RuleCreator(
+    (name) => `https://github.com/RodSarhan/eslint-plugin-react-native-unistyles/blob/main/docs/rules/${name}.md`,
+);
 
 export const sortStyles = createRule({
     name: 'sort-styles',

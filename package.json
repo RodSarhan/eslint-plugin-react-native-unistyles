@@ -1,6 +1,6 @@
 {
     "name": "eslint-plugin-react-native-unistyles",
-    "version": "3.0.2",
+    "version": "3.0.3",
     "author": "RodSarhan",
     "license": "MIT",
     "description": "React Native Unistyles rules for ESLint",
@@ -20,7 +20,7 @@
         "test": "jest",
         "test:watch": "jest --watch",
         "test:coverage": "jest --coverage",
-        "release": "env-cmd -e release -- release-it --config ./release-it.json --no-increment"
+        "release": "env-cmd -e release -- release-it --config ./release-it.json"
     },
     "repository": {
         "type": "git",
