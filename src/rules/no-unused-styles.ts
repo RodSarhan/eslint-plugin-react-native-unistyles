@@ -44,7 +44,7 @@ export const noUnusedStyles = createRule({
             },
 
             CallExpression: function (node) {
-                if (astHelpers.isStyleSheetDeclaration(node, context.settings)) {
+                if (astHelpers.isStyleSheetDeclaration(node)) {
                     const styleSheetName = astHelpers.getStyleSheetName(node);
                     const styles = astHelpers.getStyleDeclarations(node);
 

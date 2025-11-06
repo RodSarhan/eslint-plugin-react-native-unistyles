@@ -1,8 +1,6 @@
 import type {ESLintUtils, TSESTree} from '@typescript-eslint/utils';
 import type {RuleContext, SourceCode} from '@typescript-eslint/utils/ts-eslint';
 
-type Node = SuperNode;
-
 class Components {
     private list: Record<string, {node: Node; confidence: number}> = {};
 

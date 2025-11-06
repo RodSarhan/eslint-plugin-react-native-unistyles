@@ -1,4 +1,4 @@
-import {ESLintUtils} from '@typescript-eslint/utils';
+import {AST_NODE_TYPES, ESLintUtils} from '@typescript-eslint/utils';
 import type {ReportFixFunction} from '@typescript-eslint/utils/ts-eslint';
 import {astHelpers} from '../util/stylesheet';
 
@@ -104,7 +104,7 @@ export const sortStyles = createRule({
 
         return {
             CallExpression: function (node) {
-                if (!astHelpers.isStyleSheetDeclaration(node, context.settings)) {
+                if (!astHelpers.isStyleSheetDeclaration(node)) {
                     return;
                 }
 
@@ -120,14 +120,18 @@ export const sortStyles = createRule({
 
                 classDefinitionsChunks.forEach((classDefinitions) => {
                     classDefinitions.forEach((classDefinition) => {
-                        const styleProperties = classDefinition.value.properties;
-                        if (!styleProperties || styleProperties.length < 2) {
-                            return;
+                        if (classDefinition.value.type === AST_NODE_TYPES.ObjectExpression) {
+                            const styleProperties = classDefinition.value.properties;
+                            if (styleProperties.length < 2) {
+                                return;
+                            }
+                            const stylePropertyChunks = astHelpers.getPropertiesChunks(styleProperties);
+                            stylePropertyChunks.forEach((stylePropertyChunk) => {
+                                checkIsSorted(stylePropertyChunk, 'style properties', node);
+                            });
                         }
-                        const stylePropertyChunks = astHelpers.getPropertiesChunks(styleProperties);
-                        stylePropertyChunks.forEach((stylePropertyChunk) => {
-                            checkIsSorted(stylePropertyChunk, 'style properties', node);
-                        });
+
+                        return;
                     });
                 });
             },

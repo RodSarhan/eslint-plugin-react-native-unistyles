@@ -343,7 +343,7 @@ declare global {
     interface ASTNode extends TSESTree.Node {
         [_: string]: any; // TODO: fixme
     }
-    type SuperNode = SuperNode;
+    type Node = SuperNode;
     type Scope = eslint.Scope.Scope;
     type Token = eslint.AST.Token;
     type Fixer = eslint.Rule.RuleFixer;

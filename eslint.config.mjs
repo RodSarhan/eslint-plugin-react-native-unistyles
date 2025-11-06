@@ -12,7 +12,7 @@ export default defineConfig([
     nodePlugin.configs['flat/recommended-script'],
     eslintPlugin.configs.recommended,
     eslintPluginPrettierRecommended,
-    unistylesPlugin.configs.recommended,
+    unistylesPlugin.configs.all,
     globalIgnores(['node_modules/', 'dist/']),
     {
         plugins: {},
