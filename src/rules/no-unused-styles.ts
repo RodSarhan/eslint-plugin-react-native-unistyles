@@ -31,6 +31,7 @@ export const noUnusedStyles = createRule({
                                 node: node,
                                 messageId: 'unusedStyleDetected',
                                 data: {message: [`Unused style detected: ${key}.${propertyName}`]},
+                                loc: node.key.loc,
                             });
                         }
                     });
