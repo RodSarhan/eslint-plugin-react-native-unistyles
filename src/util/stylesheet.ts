@@ -2,51 +2,52 @@ import {AST_NODE_TYPES, type TSESTree} from '@typescript-eslint/utils';
 
 /**
  * StyleSheets represents the StyleSheets found in the source code.
- * @constructor
  */
-export function StyleSheets() {
-    this.styleSheets = {};
+export class StyleSheets {
+    private styleSheets: Record<string, TSESTree.Property[]> = {};
+
+    /**
+     * Add a StyleSheet to our StyleSheets collections.
+     */
+    add(styleSheetName: string, properties: TSESTree.Property[]): void {
+        this.styleSheets[styleSheetName] = properties;
+    }
+
+    /**
+     * MarkAsUsed marks a rule as used in our source code by removing it from the
+     * specified StyleSheet rules.
+     *
+     * @param fullyQualifiedName - The fully qualified name of the rule (e.g., 'styles.text')
+     */
+    markAsUsed(fullyQualifiedName: string): void {
+        const nameSplit = fullyQualifiedName.split('.');
+        const styleSheetName = nameSplit[0];
+        const styleSheetProperty = nameSplit[1];
+
+        if (styleSheetName && this.styleSheets[styleSheetName]) {
+            this.styleSheets[styleSheetName] = this.styleSheets[styleSheetName].filter((property) => {
+                if (property.key.type === AST_NODE_TYPES.Identifier) {
+                    return property.key.name !== styleSheetProperty;
+                }
+                if (property.key.type === AST_NODE_TYPES.Literal) {
+                    return property.key.value?.toString() !== styleSheetProperty;
+                }
+
+                return true;
+            });
+        }
+    }
+
+    /**
+     * GetUnusedReferences returns all collected StyleSheets and their unmarked rules.
+     */
+    getUnusedReferences(): Record<string, any> {
+        return this.styleSheets;
+    }
 }
 
-/**
- * Add adds a StyleSheet to our StyleSheets collections.
- *
- * @param {string} styleSheetName - The name of the StyleSheet.
- * @param {object} properties - The collection of rules in the styleSheet.
- */
-StyleSheets.prototype.add = function (styleSheetName: string, properties: object) {
-    this.styleSheets[styleSheetName] = properties;
-};
-
-/**
- * MarkAsUsed marks a rule as used in our source code by removing it from the
- * specified StyleSheet rules.
- *
- * @param {string} fullyQualifiedName - The fully qualified name of the rule.
- * for example 'styles.text'
- */
-StyleSheets.prototype.markAsUsed = function (fullyQualifiedName: string) {
-    const nameSplit = fullyQualifiedName.split('.');
-    const styleSheetName = nameSplit[0];
-    const styleSheetProperty = nameSplit[1];
-
-    if (styleSheetName && this.styleSheets[styleSheetName]) {
-        this.styleSheets[styleSheetName] = this.styleSheets[styleSheetName].filter(
-            (property) => property.key.name !== styleSheetProperty,
-        );
-    }
-};
-
-/**
- * GetUnusedReferences returns all collected StyleSheets and their
- * unmarked rules.
- */
-StyleSheets.prototype.getUnusedReferences = function () {
-    return this.styleSheets;
-};
-
 export const astHelpers = {
-    containsStyleSheetObject: function (node: TSESTree.Node, objectNames: string[]) {
+    containsStyleSheetObject(node: TSESTree.Node, objectNames: string[]): boolean {
         if (node.type === AST_NODE_TYPES.CallExpression) {
             const callee = node.callee;
             if (callee.type === AST_NODE_TYPES.MemberExpression) {
@@ -54,12 +55,15 @@ export const astHelpers = {
                 if (object.type === AST_NODE_TYPES.Identifier) {
                     return objectNames.includes(object.name);
                 }
+                if (object.type === AST_NODE_TYPES.Literal) {
+                    return objectNames.includes(object.value?.toString() ?? '');
+                }
             }
         }
         return false;
     },
 
-    containsCreateCall: function (node: TSESTree.Node) {
+    containsCreateCall(node: TSESTree.Node): boolean {
         if (node.type === AST_NODE_TYPES.CallExpression) {
             const callee = node.callee;
             if (callee.type === AST_NODE_TYPES.MemberExpression) {
@@ -72,19 +76,18 @@ export const astHelpers = {
         return false;
     },
 
-    isStyleSheetDeclaration: function (node: TSESTree.Node) {
+    isStyleSheetDeclaration(node: TSESTree.Node): boolean {
         const objectNames = ['StyleSheet'];
-
         return Boolean(astHelpers.containsStyleSheetObject(node, objectNames) && astHelpers.containsCreateCall(node));
     },
 
-    getStyleSheetName: function (node: TSESTree.CallExpression) {
+    getStyleSheetName(node: TSESTree.CallExpression): string | undefined {
         // @ts-expect-error -- safe
         const nodeParentIdName = node.parent.id.name as string | undefined;
         return nodeParentIdName;
     },
 
-    getStyleDeclarations: function (node: TSESTree.Node) {
+    getStyleDeclarations(node: TSESTree.Node): TSESTree.Property[] {
         if (node.type === AST_NODE_TYPES.CallExpression) {
             const firstArgument = node.arguments[0];
 
@@ -136,12 +139,12 @@ export const astHelpers = {
         return [];
     },
 
-    getStyleDeclarationsChunks: function (node: TSESTree.Node) {
+    getStyleDeclarationsChunks(node: TSESTree.Node): TSESTree.Property[][] {
         const getChunks = (
             properties: TSESTree.ObjectLiteralElement[] | (TSESTree.Property | TSESTree.RestElement)[],
-        ) => {
-            const result = [];
-            let chunk = [];
+        ): TSESTree.Property[][] => {
+            const result: TSESTree.Property[][] = [];
+            let chunk: TSESTree.Property[] = [];
             for (const property of properties) {
                 if (property.type === AST_NODE_TYPES.Property) {
                     chunk.push(property);
@@ -207,9 +210,9 @@ export const astHelpers = {
         return [];
     },
 
-    getPropertiesChunks: function (properties: TSESTree.ObjectLiteralElement[]) {
-        const result = [];
-        let chunk = [];
+    getPropertiesChunks(properties: TSESTree.ObjectLiteralElement[]): TSESTree.Property[][] {
+        const result: TSESTree.Property[][] = [];
+        let chunk: TSESTree.Property[] = [];
         for (const property of properties) {
             if (property.type === AST_NODE_TYPES.Property) {
                 chunk.push(property);
@@ -224,7 +227,7 @@ export const astHelpers = {
         return result;
     },
 
-    getExpressionIdentifier: function (node: TSESTree.Node): string {
+    getExpressionIdentifier(node: TSESTree.Node): string {
         if (node) {
             switch (node.type) {
                 case 'Identifier':
@@ -248,24 +251,34 @@ export const astHelpers = {
         return '';
     },
 
-    getStylePropertyIdentifier: function (node: TSESTree.Property) {
+    getStylePropertyIdentifier(node: TSESTree.Property): string | undefined {
         if (node && node.key) {
             return astHelpers.getExpressionIdentifier(node.key);
         }
         return undefined;
     },
 
-    getPotentialStyleReferenceFromMemberExpression: function (node: TSESTree.MemberExpression) {
+    getPotentialStyleReferenceFromMemberExpression(node: TSESTree.MemberExpression): string | undefined {
         if (node.parent.type === AST_NODE_TYPES.MemberExpression) return undefined;
-        const objectName = node.object.type === 'Identifier' ? node.object.name : undefined;
-        const propertyName = node.property.type === 'Identifier' ? node.property.name : undefined;
+        const objectName =
+            node.object.type === 'Identifier'
+                ? node.object.name
+                : node.object.type === 'Literal'
+                  ? node.object.value?.toString()
+                  : undefined;
+        const propertyName =
+            node.property.type === 'Identifier'
+                ? node.property.name
+                : node.property.type === 'Literal'
+                  ? node.property.value?.toString()
+                  : undefined;
         if (objectName && propertyName) {
             return [objectName, propertyName].join('.');
         }
         return undefined;
     },
 
-    isEitherShortHand: function (property1: string, property2: string) {
+    isEitherShortHand(property1: string, property2: string): boolean {
         const shorthands = ['margin', 'padding', 'border', 'flex'];
         if (shorthands.includes(property1)) {
             return property2.startsWith(property1);

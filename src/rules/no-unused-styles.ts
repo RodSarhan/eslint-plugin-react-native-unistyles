@@ -47,8 +47,9 @@ export const noUnusedStyles = createRule({
                 if (astHelpers.isStyleSheetDeclaration(node)) {
                     const styleSheetName = astHelpers.getStyleSheetName(node);
                     const styles = astHelpers.getStyleDeclarations(node);
-
-                    styleSheets.add(styleSheetName, styles);
+                    if (styleSheetName) {
+                        styleSheets.add(styleSheetName, styles);
+                    }
                 }
             },
 

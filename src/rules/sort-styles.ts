@@ -1,4 +1,4 @@
-import {AST_NODE_TYPES, ESLintUtils} from '@typescript-eslint/utils';
+import {AST_NODE_TYPES, ESLintUtils, type TSESTree} from '@typescript-eslint/utils';
 import type {ReportFixFunction} from '@typescript-eslint/utils/ts-eslint';
 import {astHelpers} from '../util/stylesheet';
 
@@ -35,26 +35,35 @@ export const sortStyles = createRule({
 
         const sourceCode = context.sourceCode;
 
-        function sort(array: any[]) {
-            const result: any[] = [];
+        function sort(array: TSESTree.Property[]) {
+            const result: TSESTree.Property[] = [];
             return result.concat(array).sort((a, b) => {
                 const identifierA = astHelpers.getStylePropertyIdentifier(a);
                 const identifierB = astHelpers.getStylePropertyIdentifier(b);
 
                 let sortOrder = 0;
-                if (astHelpers.isEitherShortHand(identifierA, identifierB)) {
+                if (identifierA && identifierB && astHelpers.isEitherShortHand(identifierA, identifierB)) {
                     return a.range[0] - b.range[0];
                 }
-                if (identifierA < identifierB) {
-                    sortOrder = -1;
-                } else if (identifierA > identifierB) {
-                    sortOrder = 1;
+                if (identifierA && identifierB) {
+                    if (identifierA < identifierB) {
+                        sortOrder = -1;
+                    } else if (identifierA > identifierB) {
+                        sortOrder = 1;
+                    }
                 }
                 return sortOrder * (order === 'asc' ? 1 : -1);
             });
         }
 
-        function report(array: any[], type: any, node: any, prev: any, current: any) {
+        function report(args: {
+            array: TSESTree.Property[];
+            type: string;
+            node: TSESTree.CallExpression;
+            prev: TSESTree.Property;
+            current: TSESTree.Property;
+        }) {
+            const {array, type, node, prev, current} = args;
             const currentName = astHelpers.getStylePropertyIdentifier(current);
             const prevName = astHelpers.getStylePropertyIdentifier(prev);
             const hasComments = array
@@ -81,23 +90,31 @@ export const sortStyles = createRule({
             });
         }
 
-        function checkIsSorted(array: any[], arrayName: string, node: ASTNode) {
+        function checkIsSorted(args: {
+            array: TSESTree.Property[];
+            type: 'style-properties' | 'class-names';
+            node: TSESTree.CallExpression;
+        }) {
+            const {array, type, node} = args;
             for (let i = 1; i < array.length; i += 1) {
-                const previous = array[i - 1];
+                const prev = array[i - 1];
                 const current = array[i];
 
-                if (previous.type !== 'Property' || current.type !== 'Property') {
+                if (prev?.type !== AST_NODE_TYPES.Property || current?.type !== AST_NODE_TYPES.Property) {
                     return;
                 }
 
-                const prevName = astHelpers.getStylePropertyIdentifier(previous);
+                const prevName = astHelpers.getStylePropertyIdentifier(prev);
                 const currentName = astHelpers.getStylePropertyIdentifier(current);
 
                 const oneIsShorthandForTheOther =
-                    arrayName === 'style properties' && astHelpers.isEitherShortHand(prevName, currentName);
+                    type === 'style-properties'
+                    && prevName
+                    && currentName
+                    && astHelpers.isEitherShortHand(prevName, currentName);
 
-                if (!oneIsShorthandForTheOther && !isValidOrder(prevName, currentName)) {
-                    return report(array, arrayName, node, previous, current);
+                if (!oneIsShorthandForTheOther && prevName && currentName && !isValidOrder(prevName, currentName)) {
+                    return report({array, type, node, prev, current});
                 }
             }
         }
@@ -112,7 +129,7 @@ export const sortStyles = createRule({
 
                 if (!ignoreClassNames) {
                     classDefinitionsChunks.forEach((classDefinitions) => {
-                        checkIsSorted(classDefinitions, 'class names', node);
+                        checkIsSorted({array: classDefinitions, type: 'class-names', node});
                     });
                 }
 
@@ -127,7 +144,7 @@ export const sortStyles = createRule({
                             }
                             const stylePropertyChunks = astHelpers.getPropertiesChunks(styleProperties);
                             stylePropertyChunks.forEach((stylePropertyChunk) => {
-                                checkIsSorted(stylePropertyChunk, 'style properties', node);
+                                checkIsSorted({array: stylePropertyChunk, type: 'style-properties', node});
                             });
                         }
 
