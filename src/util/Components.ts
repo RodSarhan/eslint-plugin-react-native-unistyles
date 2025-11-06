@@ -8,14 +8,14 @@ class Components {
      * Get unique identifier for a node
      */
     getId(node: TSESTree.Node) {
-        return node && node.range?.join(':');
+        return node.range?.join(':');
     }
 
     /**
      * Add a node to the components list, or update it if it's already in the list
      * 0=banned, 1=maybe, 2=yes
      */
-    add(node: TSESTree.Node, confidence: number): void {
+    add(node: TSESTree.Node, confidence: number) {
         const id = this.getId(node);
         if (!id) return;
 
@@ -42,7 +42,7 @@ class Components {
     /**
      * Update a component in the list
      */
-    set(node: TSESTree.Node, props: Record<string, any>): void {
+    set(node: TSESTree.Node, props: Record<string, any>) {
         let currentNode: TSESTree.Node | undefined = node;
         while (currentNode) {
             const id = this.getId(currentNode);
@@ -66,14 +66,14 @@ class Components {
      * Return the components list
      * Components for which we are not confident are not returned
      */
-    all(): Record<string, {node: TSESTree.Node; confidence: number}> {
+    all() {
         const list: Record<string, {node: TSESTree.Node; confidence: number}> = {};
-        Object.keys(this.list).forEach((i) => {
-            const item = this.list[i];
-            if (item && item.confidence >= 2) {
-                list[i] = item;
+        for (const entry of Object.entries(this.list)) {
+            const [id, item] = entry;
+            if (item.confidence >= 2) {
+                list[id] = item;
             }
-        });
+        }
         return list;
     }
 
@@ -81,15 +81,8 @@ class Components {
      * Return the length of the components list
      * Components for which we are not confident are not counted
      */
-    length(): number {
-        let length = 0;
-        Object.keys(this.list).forEach((i) => {
-            const item = this.list[i];
-            if (item && item.confidence >= 2) {
-                length += 1;
-            }
-        });
-        return length;
+    length() {
+        return Object.values(this.list).filter((item) => item.confidence >= 2).length;
     }
 }
 
@@ -105,7 +98,7 @@ const createUtils = <ContextType extends RuleContext<string, readonly unknown[]>
          * @param {TSESTree.Node} node The AST node being checked.
          * returns True if the node is a React ES5 component, false if not
          */
-        isES5Component(node: TSESTree.Node): boolean {
+        isES5Component(node: TSESTree.Node) {
             if (node.parent?.type === AST_NODE_TYPES.CallExpression) {
                 return /^(React\.)?createClass$/.test(sourceCode.getText(node.parent.callee));
             }
