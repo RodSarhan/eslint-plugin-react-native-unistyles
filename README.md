@@ -66,7 +66,7 @@ For older ESLint versions:
 
 ```json
 {
-  "extends": ["plugin:react-native-unistyles/legacy-recommended"]****
+  "extends": ["plugin:react-native-unistyles/legacy-recommended"]
 }
 ```
 
