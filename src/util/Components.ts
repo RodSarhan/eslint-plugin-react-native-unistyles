@@ -1,13 +1,13 @@
-import type {ESLintUtils, TSESTree} from '@typescript-eslint/utils';
+import {AST_NODE_TYPES, type ESLintUtils, type TSESTree} from '@typescript-eslint/utils';
 import type {RuleContext, SourceCode} from '@typescript-eslint/utils/ts-eslint';
 
 class Components {
-    private list: Record<string, {node: Node; confidence: number}> = {};
+    private list: Record<string, {node: TSESTree.Node; confidence: number}> = {};
 
     /**
      * Get unique identifier for a node
      */
-    getId(node: Node): string | undefined {
+    getId(node: TSESTree.Node) {
         return node && node.range?.join(':');
     }
 
@@ -15,7 +15,7 @@ class Components {
      * Add a node to the components list, or update it if it's already in the list
      * 0=banned, 1=maybe, 2=yes
      */
-    add(node: Node, confidence: number): void {
+    add(node: TSESTree.Node, confidence: number): void {
         const id = this.getId(node);
         if (!id) return;
 
@@ -33,7 +33,7 @@ class Components {
     /**
      * Find a component in the list using its node
      */
-    get(node: Node): {node: Node; confidence: number} | undefined {
+    get(node: TSESTree.Node) {
         const id = this.getId(node);
         if (!id) return;
         return this.list[id];
@@ -42,8 +42,8 @@ class Components {
     /**
      * Update a component in the list
      */
-    set(node: Node, props: Record<string, any>): void {
-        let currentNode: Node | undefined = node;
+    set(node: TSESTree.Node, props: Record<string, any>): void {
+        let currentNode: TSESTree.Node | undefined = node;
         while (currentNode) {
             const id = this.getId(currentNode);
             if (id && this.list[id]) {
@@ -66,8 +66,8 @@ class Components {
      * Return the components list
      * Components for which we are not confident are not returned
      */
-    all(): Record<string, {node: Node; confidence: number}> {
-        const list: Record<string, {node: Node; confidence: number}> = {};
+    all(): Record<string, {node: TSESTree.Node; confidence: number}> {
+        const list: Record<string, {node: TSESTree.Node; confidence: number}> = {};
         Object.keys(this.list).forEach((i) => {
             const item = this.list[i];
             if (item && item.confidence >= 2) {
@@ -102,64 +102,72 @@ const createUtils = <ContextType extends RuleContext<string, readonly unknown[]>
         /**
          * Check if the node is a React ES5 component
          *
-         * @param {Node} node The AST node being checked.
-         * @returns {Boolean} True if the node is a React ES5 component, false if not
+         * @param {TSESTree.Node} node The AST node being checked.
+         * returns True if the node is a React ES5 component, false if not
          */
-        isES5Component(node: Node): boolean {
-            if (!node.parent) {
-                return false;
+        isES5Component(node: TSESTree.Node): boolean {
+            if (node.parent?.type === AST_NODE_TYPES.CallExpression) {
+                return /^(React\.)?createClass$/.test(sourceCode.getText(node.parent.callee));
             }
-            return /^(React\.)?createClass$/.test(sourceCode.getText(node.parent.callee as TSESTree.Node));
+            return false;
         },
 
         /**
          * Check if the node is a React ES6 component
          *
-         * @param {Node} node The AST node being checked.
-         * @returns {Boolean} True if the node is a React ES6 component, false if not
+         * @param {TSESTree.Node} node The AST node being checked.
+         * returns True if the node is a React ES6 component, false if not
          */
-        isES6Component(node: Node): boolean {
-            if (!node.superClass) {
-                return false;
+        isES6Component(node: TSESTree.Node) {
+            if (node.type === AST_NODE_TYPES.ClassDeclaration || node.type === AST_NODE_TYPES.ClassExpression) {
+                const superClass = node.superClass;
+                if (!superClass) return false;
+                return /^(React\.)?(Pure)?Component$/.test(sourceCode.getText(superClass));
             }
-            return /^(React\.)?(Pure)?Component$/.test(sourceCode.getText(node.superClass as TSESTree.Node));
+            return false;
         },
 
         /**
          * Check if the node is returning JSX
          *
-         * @param {Node} node The AST node being checked (must be a ReturnStatement).
-         * @returns {Boolean} True if the node is returning JSX, false if not
+         * @param {TSESTree.Node} node The AST node being checked (must be a ReturnStatement).
+         * returns True if the node is returning JSX, false if not
          */
-        isReturningJSX(node: Node): boolean {
-            let property;
-            switch (node.type) {
-                case 'ReturnStatement':
-                    property = 'argument';
-                    break;
-                case 'ArrowFunctionExpression':
-                    property = 'body';
-                    break;
-                default:
-                    return false;
-            }
+        isReturningJSX(node: TSESTree.Node) {
+            if (node.type === AST_NODE_TYPES.ReturnStatement) {
+                const returnsJSX =
+                    node.argument?.type === AST_NODE_TYPES.JSXElement
+                    || node.argument?.type === AST_NODE_TYPES.JSXFragment;
 
-            const returnsJSX =
-                node[property] && (node[property].type === 'JSXElement' || node[property].type === 'JSXFragment');
-            const returnsReactCreateElement =
-                node[property]
-                && node[property].callee
-                && node[property].callee.property
-                && node[property].callee.property.name === 'createElement';
-            return Boolean(returnsJSX || returnsReactCreateElement);
+                const returnsReactCreateElement =
+                    node.argument?.type === AST_NODE_TYPES.CallExpression
+                    && node.argument.callee.type === AST_NODE_TYPES.MemberExpression
+                    && node.argument.callee.property.type === AST_NODE_TYPES.Identifier
+                    && node.argument.callee.property.name === 'createElement';
+
+                return returnsJSX || returnsReactCreateElement;
+            }
+            if (node.type === AST_NODE_TYPES.ArrowFunctionExpression) {
+                const returnsJSX =
+                    node.body?.type === AST_NODE_TYPES.JSXElement || node.body?.type === AST_NODE_TYPES.JSXFragment;
+
+                const returnsReactCreateElement =
+                    node.body?.type === AST_NODE_TYPES.CallExpression
+                    && node.body.callee.type === AST_NODE_TYPES.MemberExpression
+                    && node.body.callee.property.type === AST_NODE_TYPES.Identifier
+                    && node.body.callee.property.name === 'createElement';
+
+                return returnsJSX || returnsReactCreateElement;
+            }
+            return false;
         },
 
         /**
          * Get the parent component node from the current scope
          *
-         * @returns {Node | null} component node, null if we are not in a component
+         * returns component node, null if we are not in a component
          */
-        getParentComponent(_n: Node): Node | null {
+        getParentComponent(_n: TSESTree.Node) {
             return (
                 utils.getParentES6Component(_n)
                 || utils.getParentES5Component(_n)
@@ -170,12 +178,12 @@ const createUtils = <ContextType extends RuleContext<string, readonly unknown[]>
         /**
          * Get the parent ES5 component node from the current scope
          *
-         * @returns {Node | null} component node, null if we are not in a component
+         * returns component node, null if we are not in a component
          */
-        getParentES5Component(_n: Node): Node | null {
-            let scope = (context.sourceCode || context).getScope(_n as TSESTree.Node);
+        getParentES5Component(_n: TSESTree.Node) {
+            let scope = (context.sourceCode || context).getScope(_n);
             while (scope) {
-                const node = (scope.block && scope.block.parent && scope.block.parent.parent) as Node | undefined;
+                const node = scope.block && scope.block.parent && scope.block.parent.parent;
                 if (node && utils.isES5Component(node)) {
                     return node;
                 }
@@ -190,17 +198,17 @@ const createUtils = <ContextType extends RuleContext<string, readonly unknown[]>
         /**
          * Get the parent ES6 component node from the current scope
          *
-         * @returns {Node | null} component node, null if we are not in a component
+         * returns component node, null if we are not in a component
          */
-        getParentES6Component(_n: Node): Node | null {
-            let scope = (context.sourceCode || context).getScope(_n as TSESTree.Node);
+        getParentES6Component(_n: TSESTree.Node) {
+            let scope = (context.sourceCode || context).getScope(_n);
             while (scope && scope.type !== 'class') {
                 if (!scope.upper) {
                     break;
                 }
                 scope = scope.upper;
             }
-            const node = scope.block as Node;
+            const node = scope.block;
             if (!node || !utils.isES6Component(node)) {
                 return null;
             }
@@ -210,19 +218,17 @@ const createUtils = <ContextType extends RuleContext<string, readonly unknown[]>
         /**
          * Get the parent stateless component node from the current scope
          *
-         * @returns {Node | null} component node, null if we are not in a component
+         * returns component node, null if we are not in a component
          */
-        getParentStatelessComponent(_n: Node): Node | null {
-            let scope = (context.sourceCode || context).getScope(_n as TSESTree.Node);
+        getParentStatelessComponent(_n: TSESTree.Node) {
+            let scope = (context.sourceCode || context).getScope(_n);
             while (scope) {
-                const node = scope.block as Node;
+                const node = scope.block;
                 // Ignore non functions
                 const isFunction = /Function/.test(node.type);
                 // Ignore classes methods
-                const isNotMethod = !node.parent || node.parent.type !== 'MethodDefinition';
-                // Ignore arguments (callback, etc.)
-                const isNotArgument = !node.parent || node.parent.type !== 'CallExpression';
-                if (isFunction && isNotMethod && isNotArgument) {
+                const parentIsNotMethod = !node.parent || node.parent.type !== 'MethodDefinition';
+                if (isFunction && parentIsNotMethod) {
                     return node;
                 }
                 if (!scope.upper) {
@@ -245,14 +251,11 @@ type PassedRuleType<ContextType extends RuleContext<string, readonly unknown[]>>
 ) => ESLintUtils.RuleListener;
 
 /**
- * Static method for component detection
  * This is a Higher-Order Function that enhances ESLint rules with React component detection
  *
  * What it does:
  * 1. Takes a rule factory function as input
  * 2. Returns a new function that creates enhanced ESLint rules
- * 3. The enhanced rules automatically detect React components in the AST
- * 4. Provides the original rule with component tracking capabilities
  */
 
 export const enhanceRuleWithComponentDetection: <
@@ -269,16 +272,14 @@ export const enhanceRuleWithComponentDetection: <
 
         // Component detection instructions
         const detectionInstructions: ESLintUtils.RuleListener = {
-            ClassDeclaration(_node) {
-                const node = _node as Node;
+            ClassDeclaration(node) {
                 if (!utils.isES6Component(node)) {
                     return;
                 }
                 components.add(node, 2);
             },
 
-            ClassProperty(_node) {
-                const node = _node as Node;
+            ClassProperty(node) {
                 const parentNode = utils.getParentComponent(node);
                 if (!parentNode) {
                     return;
@@ -286,16 +287,22 @@ export const enhanceRuleWithComponentDetection: <
                 components.add(parentNode, 2);
             },
 
-            ObjectExpression(_node) {
-                const node = _node as Node;
+            ObjectExpression(node) {
                 if (!utils.isES5Component(node)) {
                     return;
                 }
                 components.add(node, 2);
             },
 
-            FunctionExpression(_node) {
-                const node = _node as unknown as Node;
+            FunctionExpression(node) {
+                const parentNode = utils.getParentComponent(node);
+                if (!parentNode) {
+                    return;
+                }
+                components.add(parentNode, 2);
+            },
+
+            FunctionDeclaration(node) {
                 const parentNode = utils.getParentComponent(node);
                 if (!parentNode) {
                     return;
@@ -303,30 +310,19 @@ export const enhanceRuleWithComponentDetection: <
                 components.add(parentNode, 1);
             },
 
-            FunctionDeclaration(_node) {
-                const node = _node as unknown as Node;
+            ArrowFunctionExpression(node) {
                 const parentNode = utils.getParentComponent(node);
-                if (!parentNode) {
-                    return;
+                if (parentNode?.type === AST_NODE_TYPES.ArrowFunctionExpression) {
+                    if (parentNode.expression && utils.isReturningJSX(parentNode)) {
+                        components.add(parentNode, 2);
+                    } else {
+                        components.add(parentNode, 1);
+                    }
                 }
-                components.add(parentNode, 1);
+                return;
             },
 
-            ArrowFunctionExpression(_node) {
-                const node = _node as unknown as Node;
-                const parentNode = utils.getParentComponent(node);
-                if (!parentNode) {
-                    return;
-                }
-                if (parentNode.expression && utils.isReturningJSX(parentNode)) {
-                    components.add(parentNode, 2);
-                } else {
-                    components.add(parentNode, 1);
-                }
-            },
-
-            ThisExpression(_node) {
-                const node = _node as Node;
+            ThisExpression(node) {
                 const parentNode = utils.getParentComponent(node);
                 if (!parentNode || !/Function/.test(parentNode.type)) {
                     return;
@@ -335,8 +331,7 @@ export const enhanceRuleWithComponentDetection: <
                 components.add(parentNode, 0);
             },
 
-            ReturnStatement(_node) {
-                const node = _node as Node;
+            ReturnStatement(node) {
                 if (!utils.isReturningJSX(node)) {
                     return;
                 }

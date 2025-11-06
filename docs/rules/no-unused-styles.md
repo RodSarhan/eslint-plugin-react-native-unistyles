@@ -24,19 +24,6 @@ const MyComponent = () => {
 };
 ```
 
-For using this rule with wrappers such as memo or forwarRef you can do the following
-
-```js
-const MyComponent = () => {};
-export const MyMemoizedComponent = memo(MyComponent);
-```
-
-instead of
-
-```js
-export const MyComponent = memo(() => {});
-```
-
 Styles referenced in a Style arrays are marked as used.
 
 Styles referenced in a conditional and logical expressions are marked as used.
