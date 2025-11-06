@@ -41,7 +41,7 @@ export class StyleSheets {
     /**
      * GetUnusedReferences returns all collected StyleSheets and their unmarked rules.
      */
-    getUnusedReferences(): Record<string, any> {
+    getUnusedReferences(): Record<string, TSESTree.Property[]> {
         return this.styleSheets;
     }
 }
@@ -252,7 +252,7 @@ export const astHelpers = {
     },
 
     getStylePropertyIdentifier(node: TSESTree.Property): string | undefined {
-        if (node && node.key) {
+        if (node.key) {
             return astHelpers.getExpressionIdentifier(node.key);
         }
         return undefined;

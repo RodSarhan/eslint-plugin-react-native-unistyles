@@ -1,4 +1,4 @@
-import {ESLintUtils} from '@typescript-eslint/utils';
+import {ESLintUtils, type TSESTree} from '@typescript-eslint/utils';
 
 import {enhanceRuleWithComponentDetection} from '../util/Components';
 import {StyleSheets, astHelpers} from '../util/stylesheet';
@@ -20,16 +20,19 @@ export const noUnusedStyles = createRule({
         const styleSheets = new StyleSheets();
         const styleReferences = new Set<string>();
 
-        function reportUnusedStyles(unusedStyles: any) {
+        function reportUnusedStyles(unusedStyles: Record<string, TSESTree.Property[]>) {
             Object.keys(unusedStyles).forEach((key) => {
                 if ({}.hasOwnProperty.call(unusedStyles, key)) {
                     const styles = unusedStyles[key];
-                    styles.forEach((node: ASTNode) => {
-                        context.report({
-                            node: node as any,
-                            messageId: 'unusedStyleDetected',
-                            data: {message: ['Unused style detected: ', key, '.', node.key.name].join('')},
-                        });
+                    styles?.forEach((node) => {
+                        const propertyName = astHelpers.getStylePropertyIdentifier(node);
+                        if (propertyName) {
+                            context.report({
+                                node: node,
+                                messageId: 'unusedStyleDetected',
+                                data: {message: [`Unused style detected: ${key}.${propertyName}`]},
+                            });
+                        }
                     });
                 }
             });
