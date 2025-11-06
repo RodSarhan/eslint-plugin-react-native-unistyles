@@ -1,68 +1,125 @@
-<img alt="react-native-unistyles" src="assets/banner.png">
+# ESLint Plugin for React Native Unistyles
 
-# ESLint plugin for React Native Unistyles
+![react-native-unistyles](assets/banner.png)
 
 ![NPM Downloads](https://img.shields.io/npm/d18m/eslint-plugin-react-native-unistyles) [![GitHub Repo stars](https://img.shields.io/github/stars/RodSarhan/eslint-plugin-react-native-unistyles?style=social)](https://github.com/RodSarhan/eslint-plugin-react-native-unistyles) ![NPM Version](https://img.shields.io/npm/v/eslint-plugin-react-native-unistyles) [![License](https://img.shields.io/github/license/RodSarhan/eslint-plugin-react-native-unistyles)](https://github.com/RodSarhan/eslint-plugin-react-native-unistyles/blob/main/LICENSE)
 
-[React Native Unistyles](https://github.com/jpudysz/react-native-unistyles) linting rules for ESLint. This repository is structured like (and contains code from) [eslint-plugin-react-native](https://github.com/Intellicode/eslint-plugin-react-native).
+> ESLint rules for [React Native Unistyles](https://github.com/jpudysz/react-native-unistyles) to help you write cleaner, more maintainable stylesheets.
 
-## Supported Versions
+## 📋 Requirements
 
-This plugin supports Unistyles v3 starting from v3.
+- ESLint
+- React Native Unistyles `^3.0.0`
 
-For v2 support you can install v0.2.9
+## 📦 Installation
 
-## Installation
+Install the plugin as a dev dependency:
 
-Install eslint-plugin-react-native-unistyles
-
-```sh
+```bash
 yarn add eslint-plugin-react-native-unistyles -D
 ```
 
-## Flat Configs
+## ⚙️ Configuration
 
-The plugin supports flat configs
+### ESLint Flat Config (Recommended)
 
-Example:
+For ESLint 9+ with flat config:
 
 ```js
-const {defineConfig} = require('eslint/config');
-const expoConfig = require('eslint-config-expo/flat');
-const reactCompiler = require('eslint-plugin-react-compiler');
-const unistyles = require('eslint-plugin-react-native-unistyles');
+import { defineConfig } from 'eslint/config';
+import unistyles from 'eslint-plugin-react-native-unistyles';
 
-module.exports = defineConfig([
-    expoConfig,
-    reactCompiler.configs.recommended,
-    unistyles.configs.recommended,
-])
+export default defineConfig([
+  // Your other configs...
+  unistyles.configs.recommended,
+]);
 ```
 
-For older eslint versions you can use the 'legacy-recommended' or 'legacy-all' configs
+#### Custom Configuration
 
-Or manually add the rules
+```js
+import unistyles from 'eslint-plugin-react-native-unistyles';
+
+export default defineConfig([
+  {
+    plugins: {
+      'react-native-unistyles': unistyles,
+    },
+    rules: {
+      'react-native-unistyles/no-unused-styles': 'error',
+      'react-native-unistyles/sort-styles': [
+        'warn',
+        'asc',
+        {
+          ignoreClassNames: false,
+          ignoreStyleProperties: false
+        }
+      ],
+    },
+  },
+]);
+```
+
+### Legacy Configuration (.eslintrc)
+
+For older ESLint versions:
 
 ```json
 {
-    "rules": {
-        "react-native-unistyles/no-unused-styles": "warn",
-        "react-native-unistyles/sort-styles": [
-            "warn",
-            "asc",
-            {"ignoreClassNames": false, "ignoreStyleProperties": false}
-        ]
-    }
+  "extends": ["plugin:react-native-unistyles/legacy-recommended"]****
 }
 ```
+
+#### Manual Rule Configuration
+
+```json
+{
+  "plugins": ["react-native-unistyles"],
+  "rules": {
+    "react-native-unistyles/no-unused-styles": "warn",
+    "react-native-unistyles/sort-styles": [
+      "warn",
+      "asc",
+      {
+        "ignoreClassNames": false,
+        "ignoreStyleProperties": false
+      }
+    ]
+  }
+}
+```
+
+### Note
 
 If it is not already the case you must also configure `ESLint` to support JSX.
 
 ```json
-{"parserOptions": {"ecmaFeatures": {"jsx": true}}}
+{
+    "languageOptions": {
+        "parserOptions": {
+            "ecmaFeatures": {"jsx": true}
+            }
+        }
+}
 ```
 
-## List of supported rules
+## 📖 Rules
 
-- [no-unused-styles](docs/rules/no-unused-styles.md): Detect `createStyleSheet` styles which are not used in your React components
-- [sort-styles](docs/rules/sort-styles.md): Detect `createStyleSheet` styles which are not in correct sort order
+| Rule | Description |
+|------|-------------|
+| [`no-unused-styles`](docs/rules/no-unused-styles.md) | Detect unused stylesheet definitions |
+| [`sort-styles`](docs/rules/sort-styles.md) | Enforce sorted style properties |
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- Inspired by [eslint-plugin-react-native](https://github.com/Intellicode/eslint-plugin-react-native)
+- Built for [React Native Unistyles](https://github.com/jpudysz/react-native-unistyles) by [@jpudysz](https://github.com/jpudysz)
+
+## 📚 Related Projects
+
+- [React Native Unistyles](https://github.com/jpudysz/react-native-unistyles) - The styling library this plugin supports
+- [ESLint](https://eslint.org/) - The pluggable linting utility for JavaScript
