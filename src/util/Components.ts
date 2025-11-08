@@ -121,25 +121,31 @@ const createUtils = <ContextType extends RuleContext<string, readonly unknown[]>
         },
 
         /**
-         * Check if the node is returning JSX
+         * Check if the return statement is returning JSX
          *
          * @param {TSESTree.Node} node The AST node being checked (must be a ReturnStatement).
-         * returns True if the node is returning JSX, false if not
+         * returns True if the return statement is returning JSX, false if not
          */
-        isReturningJSX(node: TSESTree.Node) {
-            if (node.type === AST_NODE_TYPES.ReturnStatement) {
-                const returnsJSX =
-                    node.argument?.type === AST_NODE_TYPES.JSXElement
-                    || node.argument?.type === AST_NODE_TYPES.JSXFragment;
+        isJSXReturnStatement(node: TSESTree.ReturnStatement) {
+            const returnsJSX =
+                node.argument?.type === AST_NODE_TYPES.JSXElement || node.argument?.type === AST_NODE_TYPES.JSXFragment;
 
-                const returnsReactCreateElement =
-                    node.argument?.type === AST_NODE_TYPES.CallExpression
-                    && node.argument.callee.type === AST_NODE_TYPES.MemberExpression
-                    && node.argument.callee.property.type === AST_NODE_TYPES.Identifier
-                    && node.argument.callee.property.name === 'createElement';
+            const returnsReactCreateElement =
+                node.argument?.type === AST_NODE_TYPES.CallExpression
+                && node.argument.callee.type === AST_NODE_TYPES.MemberExpression
+                && node.argument.callee.property.type === AST_NODE_TYPES.Identifier
+                && node.argument.callee.property.name === 'createElement';
 
-                return returnsJSX || returnsReactCreateElement;
-            }
+            return returnsJSX || returnsReactCreateElement;
+        },
+
+        /**
+         * Check if the function is returning JSX
+         *
+         * @param {TSESTree.Node} node The AST node being checked (must be a ReturnStatement).
+         * returns True if the function is returning JSX, false if not
+         */
+        isArrowFunctionReturningJSXDirectly(node: TSESTree.ArrowFunctionExpression) {
             if (node.type === AST_NODE_TYPES.ArrowFunctionExpression) {
                 const returnsJSX =
                     node.body?.type === AST_NODE_TYPES.JSXElement || node.body?.type === AST_NODE_TYPES.JSXFragment;
@@ -162,9 +168,9 @@ const createUtils = <ContextType extends RuleContext<string, readonly unknown[]>
          */
         getParentComponent(_n: TSESTree.Node) {
             return (
-                utils.getParentES6Component(_n)
+                utils.getParentStatelessComponent(_n)
+                || utils.getParentES6Component(_n)
                 || utils.getParentES5Component(_n)
-                || utils.getParentStatelessComponent(_n)
             );
         },
 
@@ -218,7 +224,11 @@ const createUtils = <ContextType extends RuleContext<string, readonly unknown[]>
             while (scope) {
                 const node = scope.block;
                 // Ignore non functions
-                const isFunction = /Function/.test(node.type);
+                const isFunction =
+                    node.type === AST_NODE_TYPES.FunctionDeclaration
+                    || node.type === AST_NODE_TYPES.FunctionExpression
+                    || node.type === AST_NODE_TYPES.ArrowFunctionExpression;
+
                 // Ignore classes methods
                 const parentIsNotMethod = !node.parent || node.parent.type !== 'MethodDefinition';
                 if (isFunction && parentIsNotMethod) {
@@ -287,14 +297,21 @@ export const enhanceRuleWithComponentDetection: <
                 components.add(node, 2);
             },
 
+            // example: const MyComponent = wrapper(function() { return <JSX />; });
+            // example 2: const MyComponent = wrapper(function named() { return <JSX />; });
+            // confidence 1 because we can't be sure it's a component until we see a return statement
+            // and return statements case is handled separately
             FunctionExpression(node) {
                 const parentNode = utils.getParentComponent(node);
                 if (!parentNode) {
                     return;
                 }
-                components.add(parentNode, 2);
+                components.add(parentNode, 1);
             },
 
+            // example: function MyComponent() { return <JSX />; }
+            // confidence 1 because we can't be sure it's a component until we see a return statement
+            // and return statements case is handled separately
             FunctionDeclaration(node) {
                 const parentNode = utils.getParentComponent(node);
                 if (!parentNode) {
@@ -303,16 +320,18 @@ export const enhanceRuleWithComponentDetection: <
                 components.add(parentNode, 1);
             },
 
+            // example: const MyComponent = wrapper(() => { return <JSX />; });
+            // example 2: const MyComponent = wrapper(() => <JSX />);
+            // No need to handle () => {return <JSX />} as it's covered by ReturnStatement
+            // Hence the node.expression check
             ArrowFunctionExpression(node) {
-                const parentNode = utils.getParentComponent(node);
-                if (parentNode?.type === AST_NODE_TYPES.ArrowFunctionExpression) {
-                    if (parentNode.expression && utils.isReturningJSX(parentNode)) {
-                        components.add(parentNode, 2);
-                    } else {
-                        components.add(parentNode, 1);
-                    }
+                if (node.expression && utils.isArrowFunctionReturningJSXDirectly(node)) {
+                    components.add(node, 2);
                 }
-                return;
+                // Otherwise, we can't be sure it's a component until we see a return statement
+                else {
+                    components.add(node, 1);
+                }
             },
 
             ThisExpression(node) {
@@ -325,7 +344,7 @@ export const enhanceRuleWithComponentDetection: <
             },
 
             ReturnStatement(node) {
-                if (!utils.isReturningJSX(node)) {
+                if (!utils.isJSXReturnStatement(node)) {
                     return;
                 }
                 const parentNode = utils.getParentComponent(node);
