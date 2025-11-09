@@ -1,6 +1,6 @@
 {
     "name": "eslint-plugin-react-native-unistyles",
-    "version": "3.0.6",
+    "version": "3.0.7",
     "author": "RodSarhan",
     "license": "MIT",
     "description": "React Native Unistyles rules for ESLint",
