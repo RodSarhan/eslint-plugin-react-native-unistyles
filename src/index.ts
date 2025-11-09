@@ -2,7 +2,7 @@ import type {ESLint} from 'eslint';
 import {rules as _rules} from './rules';
 
 const _plugin: ESLint.Plugin = {
-    meta: {name: 'eslint-plugin-react-native-unistyles', version: '3.0.6'},
+    meta: {name: 'eslint-plugin-react-native-unistyles', version: '3.0.7'},
     rules: _rules as unknown as ESLint.Plugin['rules'],
     configs: {},
 };
