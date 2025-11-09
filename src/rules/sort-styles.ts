@@ -66,19 +66,55 @@ export const sortStyles = createRule({
             const {array, type, node, prev, current} = args;
             const currentName = stylesASTHelpers.getStylePropertyIdentifier(current);
             const prevName = stylesASTHelpers.getStylePropertyIdentifier(prev);
-            const hasComments = array
-                .map((prop) => [...sourceCode.getCommentsBefore(prop), ...sourceCode.getCommentsAfter(prop)])
-                .reduce((hasComment, comment) => hasComment || comment.length > 0, false);
 
             const fixFunction: ReportFixFunction = (fixer) => {
+                // Create sorted array with properties and their associated comments
                 const sortedArray = sort(array);
-                const fixesArray = array.map((item, i) => {
-                    if (item !== sortedArray[i]) {
-                        return fixer.replaceText(item, sourceCode.getText(sortedArray[i]));
-                    }
-                    return null;
+
+                // Build property-comment pairs for original and sorted arrays
+                const originalPairs = array.map((prop) => ({
+                    property: prop,
+                    comments: sourceCode.getCommentsBefore(prop)
+                }));
+
+                const sortedPairs = sortedArray.map((prop) => {
+                    const originalPair = originalPairs.find(pair => pair.property === prop);
+                    return originalPair || { property: prop, comments: [] };
                 });
-                return fixesArray.filter((x) => !!x);
+
+                // Generate fixes by replacing each property with its sorted counterpart
+                const fixes = [];
+                for (let i = 0; i < array.length; i++) {
+                    const originalProp = array[i];
+                    const sortedPair = sortedPairs[i];
+
+                    if (!originalProp || !sortedPair) {
+                        continue;
+                    }
+
+                    if (originalProp !== sortedPair.property) {
+                        // Build replacement text with comments above the property
+                        let replacementText = '';
+
+                        // Add comments above the property
+                        sortedPair.comments.forEach(comment => {
+                            replacementText += sourceCode.getText(comment) + '\n';
+                        });
+
+                        // Add the property itself
+                        replacementText += sourceCode.getText(sortedPair.property);
+
+                        // Calculate the range to include comments above the original property
+                        const commentsBeforeOriginal = sourceCode.getCommentsBefore(originalProp);
+                        const startPos = commentsBeforeOriginal.length > 0 && commentsBeforeOriginal[0]
+                            ? commentsBeforeOriginal[0].range[0]
+                            : originalProp.range[0];
+
+                        fixes.push(fixer.replaceTextRange([startPos, originalProp.range[1]], replacementText));
+                    }
+                }
+
+                return fixes;
             };
 
             context.report({
@@ -86,7 +122,7 @@ export const sortStyles = createRule({
                 messageId: 'expectedDifferentOrder',
                 data: {type, order, currentName, prevName},
                 loc: current.key.loc,
-                fix: hasComments ? undefined : fixFunction,
+                fix: fixFunction,
             });
         }
 
