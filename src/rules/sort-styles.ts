@@ -1,4 +1,4 @@
-import {AST_NODE_TYPES, ESLintUtils, TSESTree} from '@typescript-eslint/utils';
+import {AST_NODE_TYPES, ESLintUtils, type TSESTree} from '@typescript-eslint/utils';
 import type {ReportFixFunction} from '@typescript-eslint/utils/ts-eslint';
 import {stylesASTHelpers} from '../util/stylesheet';
 
@@ -98,18 +98,13 @@ export const sortStyles = createRule({
 
                         // Add comments above the property
                         sortedPair.comments.forEach((comment) => {
-                            if (comment.type === TSESTree.AST_TOKEN_TYPES.Line) {
-                                replacementText += sourceCode.getText(comment) + '\n';
-                            }
-                            if (comment.type === TSESTree.AST_TOKEN_TYPES.Block) {
-                                // For block comments, preserve indentation by getting the original property's indentation
-                                const originalPropStartLine = sourceCode.getLocFromIndex(originalProp.range[0]).line;
-                                const lines = sourceCode.getLines();
-                                const lineText = lines[originalPropStartLine - 1];
-                                const indentation = lineText?.match(/^(\s*)/)?.[1] || '';
+                            // preserve indentation by getting the original property's indentation
+                            const originalPropStartLine = sourceCode.getLocFromIndex(originalProp.range[0]).line;
+                            const lines = sourceCode.getLines();
+                            const lineText = lines[originalPropStartLine - 1];
+                            const indentation = lineText?.match(/^(\s*)/)?.[1] || '';
 
-                                replacementText += sourceCode.getText(comment) + '\n' + indentation;
-                            }
+                            replacementText += sourceCode.getText(comment) + '\n' + indentation;
                         });
 
                         // Add the property itself
