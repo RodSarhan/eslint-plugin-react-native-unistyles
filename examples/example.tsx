@@ -13,6 +13,9 @@ const styles = StyleSheet.create(() => ({
 
 const styles2 = StyleSheet['create']({
     container: {flex: 1, justifyContent: 'center'},
+    /* some comment
+    some comment line 2
+    **/
     foo3: {fontSize: 16, flex: 1},
     // some comment
     // some comment line 2
@@ -20,9 +23,7 @@ const styles2 = StyleSheet['create']({
     foo2: () => {
         return {fontSize: 16, flex: 1};
     },
-    /* some comment
-    some comment line 2
-     **/
+    /* some comment **/
     foo0: function () {
         return {fontSize: 16, flex: 1};
     },

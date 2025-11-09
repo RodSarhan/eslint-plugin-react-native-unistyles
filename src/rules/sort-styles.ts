@@ -1,4 +1,4 @@
-import {AST_NODE_TYPES, ESLintUtils, type TSESTree} from '@typescript-eslint/utils';
+import {AST_NODE_TYPES, ESLintUtils, TSESTree} from '@typescript-eslint/utils';
 import type {ReportFixFunction} from '@typescript-eslint/utils/ts-eslint';
 import {stylesASTHelpers} from '../util/stylesheet';
 
@@ -74,12 +74,12 @@ export const sortStyles = createRule({
                 // Build property-comment pairs for original and sorted arrays
                 const originalPairs = array.map((prop) => ({
                     property: prop,
-                    comments: sourceCode.getCommentsBefore(prop)
+                    comments: sourceCode.getCommentsBefore(prop),
                 }));
 
                 const sortedPairs = sortedArray.map((prop) => {
-                    const originalPair = originalPairs.find(pair => pair.property === prop);
-                    return originalPair || { property: prop, comments: [] };
+                    const originalPair = originalPairs.find((pair) => pair.property === prop);
+                    return originalPair || {property: prop, comments: []};
                 });
 
                 // Generate fixes by replacing each property with its sorted counterpart
@@ -97,8 +97,19 @@ export const sortStyles = createRule({
                         let replacementText = '';
 
                         // Add comments above the property
-                        sortedPair.comments.forEach(comment => {
-                            replacementText += sourceCode.getText(comment) + '\n';
+                        sortedPair.comments.forEach((comment) => {
+                            if (comment.type === TSESTree.AST_TOKEN_TYPES.Line) {
+                                replacementText += sourceCode.getText(comment) + '\n';
+                            }
+                            if (comment.type === TSESTree.AST_TOKEN_TYPES.Block) {
+                                // For block comments, preserve indentation by getting the original property's indentation
+                                const originalPropStartLine = sourceCode.getLocFromIndex(originalProp.range[0]).line;
+                                const lines = sourceCode.getLines();
+                                const lineText = lines[originalPropStartLine - 1];
+                                const indentation = lineText?.match(/^(\s*)/)?.[1] || '';
+
+                                replacementText += sourceCode.getText(comment) + '\n' + indentation;
+                            }
                         });
 
                         // Add the property itself
@@ -106,9 +117,10 @@ export const sortStyles = createRule({
 
                         // Calculate the range to include comments above the original property
                         const commentsBeforeOriginal = sourceCode.getCommentsBefore(originalProp);
-                        const startPos = commentsBeforeOriginal.length > 0 && commentsBeforeOriginal[0]
-                            ? commentsBeforeOriginal[0].range[0]
-                            : originalProp.range[0];
+                        const startPos =
+                            commentsBeforeOriginal.length > 0 && commentsBeforeOriginal[0]
+                                ? commentsBeforeOriginal[0].range[0]
+                                : originalProp.range[0];
 
                         fixes.push(fixer.replaceTextRange([startPos, originalProp.range[1]], replacementText));
                     }
