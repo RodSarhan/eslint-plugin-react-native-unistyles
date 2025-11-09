@@ -1,6 +1,6 @@
 import {AST_NODE_TYPES, ESLintUtils, type TSESTree} from '@typescript-eslint/utils';
 import type {ReportFixFunction} from '@typescript-eslint/utils/ts-eslint';
-import {astHelpers} from '../util/stylesheet';
+import {stylesASTHelpers} from '../util/stylesheet';
 
 const createRule = ESLintUtils.RuleCreator(
     (name) => `https://github.com/RodSarhan/eslint-plugin-react-native-unistyles/blob/main/docs/rules/${name}.md`,
@@ -20,16 +20,16 @@ export const sortStyles = createRule({
             {type: 'string', enum: ['asc', 'desc']},
             {
                 type: 'object',
-                properties: {ignoreClassNames: {type: 'boolean'}, ignoreStyleProperties: {type: 'boolean'}},
+                properties: {ignoreStyleNames: {type: 'boolean'}, ignoreStyleProperties: {type: 'boolean'}},
                 additionalProperties: false,
             },
         ],
     },
-    defaultOptions: ['asc', {ignoreClassNames: false, ignoreStyleProperties: false}],
+    defaultOptions: ['asc', {ignoreStyleNames: false, ignoreStyleProperties: false}],
     create: (context) => {
         const order = context.options[0] || 'asc';
         const options = context.options[1] || {};
-        const {ignoreClassNames} = options;
+        const {ignoreStyleNames} = options;
         const {ignoreStyleProperties} = options;
         const isValidOrder = order === 'asc' ? (a: string, b: string) => a <= b : (a: string, b: string) => a >= b;
 
@@ -38,11 +38,11 @@ export const sortStyles = createRule({
         function sort(array: TSESTree.Property[]) {
             const result: TSESTree.Property[] = [];
             return result.concat(array).sort((a, b) => {
-                const identifierA = astHelpers.getStylePropertyIdentifier(a);
-                const identifierB = astHelpers.getStylePropertyIdentifier(b);
+                const identifierA = stylesASTHelpers.getStylePropertyIdentifier(a);
+                const identifierB = stylesASTHelpers.getStylePropertyIdentifier(b);
 
                 let sortOrder = 0;
-                if (identifierA && identifierB && astHelpers.isEitherShortHand(identifierA, identifierB)) {
+                if (identifierA && identifierB && stylesASTHelpers.isEitherShortHand(identifierA, identifierB)) {
                     return a.range[0] - b.range[0];
                 }
                 if (identifierA && identifierB) {
@@ -64,8 +64,8 @@ export const sortStyles = createRule({
             current: TSESTree.Property;
         }) {
             const {array, type, node, prev, current} = args;
-            const currentName = astHelpers.getStylePropertyIdentifier(current);
-            const prevName = astHelpers.getStylePropertyIdentifier(prev);
+            const currentName = stylesASTHelpers.getStylePropertyIdentifier(current);
+            const prevName = stylesASTHelpers.getStylePropertyIdentifier(prev);
             const hasComments = array
                 .map((prop) => [...sourceCode.getCommentsBefore(prop), ...sourceCode.getCommentsAfter(prop)])
                 .reduce((hasComment, comment) => hasComment || comment.length > 0, false);
@@ -92,7 +92,7 @@ export const sortStyles = createRule({
 
         function checkIsSorted(args: {
             array: TSESTree.Property[];
-            type: 'style-properties' | 'class-names';
+            type: 'style-properties' | 'style-names';
             node: TSESTree.CallExpression;
         }) {
             const {array, type, node} = args;
@@ -104,14 +104,14 @@ export const sortStyles = createRule({
                     return;
                 }
 
-                const prevName = astHelpers.getStylePropertyIdentifier(prev);
-                const currentName = astHelpers.getStylePropertyIdentifier(current);
+                const prevName = stylesASTHelpers.getStylePropertyIdentifier(prev);
+                const currentName = stylesASTHelpers.getStylePropertyIdentifier(current);
 
                 const oneIsShorthandForTheOther =
                     type === 'style-properties'
                     && prevName
                     && currentName
-                    && astHelpers.isEitherShortHand(prevName, currentName);
+                    && stylesASTHelpers.isEitherShortHand(prevName, currentName);
 
                 if (!oneIsShorthandForTheOther && prevName && currentName && !isValidOrder(prevName, currentName)) {
                     return report({array, type, node, prev, current});
@@ -121,32 +121,54 @@ export const sortStyles = createRule({
 
         return {
             CallExpression: function (node) {
-                if (!astHelpers.isStyleSheetDeclaration(node)) {
+                if (!stylesASTHelpers.isStyleSheetDeclaration(node)) {
                     return;
                 }
 
-                const classDefinitionsChunks = astHelpers.getStyleDeclarationsChunks(node);
+                const styleDeclarationsChunks = stylesASTHelpers.getStyleDeclarationsChunks(node);
 
-                if (!ignoreClassNames) {
-                    classDefinitionsChunks.forEach((classDefinitions) => {
-                        checkIsSorted({array: classDefinitions, type: 'class-names', node});
+                if (!ignoreStyleNames) {
+                    styleDeclarationsChunks.forEach((styleDeclarationChunk) => {
+                        checkIsSorted({array: styleDeclarationChunk, type: 'style-names', node});
                     });
                 }
 
                 if (ignoreStyleProperties) return;
 
-                classDefinitionsChunks.forEach((classDefinitions) => {
-                    classDefinitions.forEach((classDefinition) => {
-                        if (classDefinition.value.type === AST_NODE_TYPES.ObjectExpression) {
-                            const styleProperties = classDefinition.value.properties;
-                            if (styleProperties.length < 2) {
-                                return;
-                            }
-                            const stylePropertyChunks = astHelpers.getPropertiesChunks(styleProperties);
-                            stylePropertyChunks.forEach((stylePropertyChunk) => {
-                                checkIsSorted({array: stylePropertyChunk, type: 'style-properties', node});
-                            });
+                styleDeclarationsChunks.forEach((styleDeclarationChunk) => {
+                    styleDeclarationChunk.forEach((styleChunck) => {
+                        let innerStyleProperties: TSESTree.ObjectLiteralElement[] = [];
+                        if (styleChunck.value.type === AST_NODE_TYPES.ObjectExpression) {
+                            innerStyleProperties = styleChunck.value.properties;
                         }
+                        if (styleChunck.value.type === AST_NODE_TYPES.ArrowFunctionExpression) {
+                            if (styleChunck.value.body.type === AST_NODE_TYPES.ObjectExpression) {
+                                innerStyleProperties = styleChunck.value.body.properties;
+                            }
+                            if (styleChunck.value.body.type === AST_NODE_TYPES.BlockStatement) {
+                                const returnStatement = styleChunck.value.body.body.find(
+                                    (statement) => statement.type === AST_NODE_TYPES.ReturnStatement,
+                                );
+                                if (returnStatement?.argument?.type === AST_NODE_TYPES.ObjectExpression) {
+                                    innerStyleProperties = returnStatement.argument.properties;
+                                }
+                            }
+                        }
+                        if (styleChunck.value.type === AST_NODE_TYPES.FunctionExpression) {
+                            const returnStatement = styleChunck.value.body.body.find(
+                                (statement) => statement.type === AST_NODE_TYPES.ReturnStatement,
+                            );
+                            if (returnStatement?.argument?.type === AST_NODE_TYPES.ObjectExpression) {
+                                innerStyleProperties = returnStatement.argument.properties;
+                            }
+                        }
+                        if (innerStyleProperties.length < 2) {
+                            return;
+                        }
+                        const stylePropertyChunks = stylesASTHelpers.getPropertiesChunks(innerStyleProperties);
+                        stylePropertyChunks.forEach((stylePropertyChunk) => {
+                            checkIsSorted({array: stylePropertyChunk, type: 'style-properties', node});
+                        });
 
                         return;
                     });

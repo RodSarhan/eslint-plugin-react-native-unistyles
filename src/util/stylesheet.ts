@@ -1,4 +1,5 @@
 import {AST_NODE_TYPES, type TSESTree} from '@typescript-eslint/utils';
+import {genericUtils} from './generic';
 
 /**
  * StyleSheets represents the StyleSheets found in the source code.
@@ -32,6 +33,10 @@ export class StyleSheets {
                 if (property.key.type === AST_NODE_TYPES.Literal) {
                     return property.key.value?.toString() !== styleSheetProperty;
                 }
+                if (property.key.type === AST_NODE_TYPES.TemplateLiteral) {
+                    const keyString = genericUtils.getStringFromTemplateLiteral(property.key);
+                    return keyString !== styleSheetProperty;
+                }
 
                 return true;
             });
@@ -46,7 +51,7 @@ export class StyleSheets {
     }
 }
 
-export const astHelpers = {
+export const stylesASTHelpers = {
     containsStyleSheetObject(node: TSESTree.Node, objectNames: string[]): boolean {
         if (node.type === AST_NODE_TYPES.CallExpression) {
             const callee = node.callee;
@@ -54,9 +59,6 @@ export const astHelpers = {
                 const object = callee.object;
                 if (object.type === AST_NODE_TYPES.Identifier) {
                     return objectNames.includes(object.name);
-                }
-                if (object.type === AST_NODE_TYPES.Literal) {
-                    return objectNames.includes(object.value?.toString() ?? '');
                 }
             }
         }
@@ -67,9 +69,19 @@ export const astHelpers = {
         if (node.type === AST_NODE_TYPES.CallExpression) {
             const callee = node.callee;
             if (callee.type === AST_NODE_TYPES.MemberExpression) {
+                // StyleSheet.create
                 const property = callee.property;
                 if (property.type === AST_NODE_TYPES.Identifier) {
                     return property.name === 'create';
+                }
+                // StyleSheet["create"]
+                if (property.type === AST_NODE_TYPES.Literal) {
+                    return property.value === 'create';
+                }
+                // StyleSheet[`create`]
+                if (property.type === AST_NODE_TYPES.TemplateLiteral) {
+                    const propertyName = genericUtils.getStringFromTemplateLiteral(property);
+                    return propertyName === 'create';
                 }
             }
         }
@@ -78,13 +90,21 @@ export const astHelpers = {
 
     isStyleSheetDeclaration(node: TSESTree.Node): boolean {
         const objectNames = ['StyleSheet'];
-        return Boolean(astHelpers.containsStyleSheetObject(node, objectNames) && astHelpers.containsCreateCall(node));
+        // has StylesSheet indetifier
+        const hasStyleSheetObject = stylesASTHelpers.containsStyleSheetObject(node, objectNames);
+        // calls create function StyleSheet.create
+        const hasCreateCall = stylesASTHelpers.containsCreateCall(node);
+        return hasStyleSheetObject && hasCreateCall;
     },
 
-    getStyleSheetName(node: TSESTree.CallExpression): string | undefined {
-        // @ts-expect-error -- safe
-        const nodeParentIdName = node.parent.id.name as string | undefined;
-        return nodeParentIdName;
+    getStyleSheetName(node: TSESTree.CallExpression) {
+        const parent = node.parent;
+        if (parent.type === AST_NODE_TYPES.VariableDeclarator) {
+            if (parent.id.type === AST_NODE_TYPES.Identifier) {
+                return parent.id.name;
+            }
+        }
+        return undefined;
     },
 
     getStyleDeclarations(node: TSESTree.Node): TSESTree.Property[] {
@@ -139,7 +159,7 @@ export const astHelpers = {
         return [];
     },
 
-    getStyleDeclarationsChunks(node: TSESTree.Node): TSESTree.Property[][] {
+    getStyleDeclarationsChunks(node: TSESTree.CallExpression): TSESTree.Property[][] {
         const getChunks = (
             properties: TSESTree.ObjectLiteralElement[] | (TSESTree.Property | TSESTree.RestElement)[],
         ): TSESTree.Property[][] => {
@@ -162,45 +182,43 @@ export const astHelpers = {
         if (node.type === AST_NODE_TYPES.CallExpression) {
             const firstArgument = node.arguments[0];
 
-            if (
-                firstArgument?.type === AST_NODE_TYPES.ObjectExpression
-                || firstArgument?.type === AST_NODE_TYPES.ObjectPattern
-            ) {
+            // example StyleSheet.create( { ... } )
+            if (firstArgument?.type === AST_NODE_TYPES.ObjectExpression) {
                 const properties = firstArgument.properties;
                 return getChunks(properties);
             }
 
+            // example StyleSheet.create(() => ( { ... } ))
+            // example StyleSheet.create(() => { return { ... } })
             if (firstArgument?.type === AST_NODE_TYPES.ArrowFunctionExpression) {
                 const body = firstArgument.body;
 
-                if (body?.type === AST_NODE_TYPES.ObjectExpression || body?.type === AST_NODE_TYPES.ObjectPattern) {
+                // example StyleSheet.create(() => ( { ... } ))
+                if (body?.type === AST_NODE_TYPES.ObjectExpression) {
                     const properties = body.properties;
                     return getChunks(properties);
                 }
 
+                // example StyleSheet.create(() => { return { ... } })
                 if (body.type === AST_NODE_TYPES.BlockStatement) {
                     const statements = body.body;
                     const returnStatement = statements.find((body) => body.type === AST_NODE_TYPES.ReturnStatement);
                     const argument = returnStatement?.argument;
-                    if (
-                        argument?.type === AST_NODE_TYPES.ObjectExpression
-                        || argument?.type === AST_NODE_TYPES.ObjectPattern
-                    ) {
+                    if (argument?.type === AST_NODE_TYPES.ObjectExpression) {
                         const properties = argument.properties;
                         return getChunks(properties);
                     }
                 }
             }
 
+            // example StyleSheet.create(function () { ... })
+            // example2 StyleSheet.create(function namedfunc() { ... })
             if (firstArgument?.type === AST_NODE_TYPES.FunctionExpression) {
                 const body = firstArgument.body;
                 const statements = body.body;
                 const returnStatement = statements.find((body) => body.type === AST_NODE_TYPES.ReturnStatement);
                 const argument = returnStatement?.argument;
-                if (
-                    argument?.type === AST_NODE_TYPES.ObjectExpression
-                    || argument?.type === AST_NODE_TYPES.ObjectPattern
-                ) {
+                if (argument?.type === AST_NODE_TYPES.ObjectExpression) {
                     const properties = argument.properties;
                     return getChunks(properties);
                 }
@@ -235,14 +253,7 @@ export const astHelpers = {
                 case 'Literal':
                     return node.value?.toString() ?? '';
                 case 'TemplateLiteral':
-                    return node.quasis.reduce((result, quasi, index) => {
-                        const expression = node.expressions[index];
-                        if (!expression) {
-                            return result + quasi.value.cooked;
-                        }
-                        return result + quasi.value.cooked + astHelpers.getExpressionIdentifier(expression);
-                    }, '');
-
+                    return genericUtils.getStringFromTemplateLiteral(node) ?? '';
                 default:
                     return '';
             }
@@ -253,31 +264,44 @@ export const astHelpers = {
 
     getStylePropertyIdentifier(node: TSESTree.Property): string | undefined {
         if (node.key) {
-            return astHelpers.getExpressionIdentifier(node.key);
+            return stylesASTHelpers.getExpressionIdentifier(node.key);
         }
         return undefined;
     },
 
+    // example: styles.text & styles['text'] & styles[`text`]
     getPotentialStyleReferenceFromMemberExpression(node: TSESTree.MemberExpression): string | undefined {
         if (node.parent.type === AST_NODE_TYPES.MemberExpression) return undefined;
-        const objectName =
-            node.object.type === 'Identifier'
-                ? node.object.name
-                : node.object.type === 'Literal'
-                  ? node.object.value?.toString()
-                  : undefined;
-        const propertyName =
-            node.property.type === 'Identifier'
-                ? node.property.name
-                : node.property.type === 'Literal'
-                  ? node.property.value?.toString()
-                  : undefined;
+
+        let objectName: string | undefined;
+        if (node.object.type === AST_NODE_TYPES.Identifier) {
+            objectName = node.object.name;
+        }
+        if (node.object.type === AST_NODE_TYPES.Literal) {
+            objectName = node.object.value?.toString();
+        }
+        if (node.object.type === AST_NODE_TYPES.TemplateLiteral) {
+            objectName = genericUtils.getStringFromTemplateLiteral(node.object);
+        }
+
+        let propertyName: string | undefined;
+        if (node.property.type === AST_NODE_TYPES.Identifier) {
+            propertyName = node.property.name;
+        }
+        if (node.property.type === AST_NODE_TYPES.Literal) {
+            propertyName = node.property.value?.toString();
+        }
+        if (node.property.type === AST_NODE_TYPES.TemplateLiteral) {
+            propertyName = genericUtils.getStringFromTemplateLiteral(node.property);
+        }
+
         if (objectName && propertyName) {
-            return [objectName, propertyName].join('.');
+            return `${objectName}.${propertyName}`;
         }
         return undefined;
     },
 
+    // example: margin vs marginTop
     isEitherShortHand(property1: string, property2: string): boolean {
         const shorthands = ['margin', 'padding', 'border', 'flex'];
         if (shorthands.includes(property1)) {

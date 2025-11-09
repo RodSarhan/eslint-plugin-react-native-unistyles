@@ -1,7 +1,7 @@
 import {ESLintUtils, type TSESTree} from '@typescript-eslint/utils';
 
-import {enhanceRuleWithComponentDetection} from '../util/Components';
-import {StyleSheets, astHelpers} from '../util/stylesheet';
+import {componentsUtils} from '../util/component';
+import {StyleSheets, stylesASTHelpers} from '../util/stylesheet';
 
 const createRule = ESLintUtils.RuleCreator(
     (name) => `https://github.com/RodSarhan/eslint-plugin-react-native-unistyles/blob/main/docs/rules/${name}.md`,
@@ -16,7 +16,7 @@ export const noUnusedStyles = createRule({
         schema: [],
     },
     defaultOptions: [],
-    create: enhanceRuleWithComponentDetection((context, components) => {
+    create: componentsUtils.enhanceRuleWithComponentDetection((context, components) => {
         const styleSheets = new StyleSheets();
         const styleReferences = new Set<string>();
 
@@ -25,7 +25,7 @@ export const noUnusedStyles = createRule({
                 if ({}.hasOwnProperty.call(unusedStyles, key)) {
                     const styles = unusedStyles[key];
                     styles?.forEach((node) => {
-                        const propertyName = astHelpers.getStylePropertyIdentifier(node);
+                        const propertyName = stylesASTHelpers.getStylePropertyIdentifier(node);
                         if (propertyName) {
                             context.report({
                                 node: node,
@@ -41,16 +41,16 @@ export const noUnusedStyles = createRule({
 
         return {
             MemberExpression: function (node) {
-                const styleRef = astHelpers.getPotentialStyleReferenceFromMemberExpression(node);
+                const styleRef = stylesASTHelpers.getPotentialStyleReferenceFromMemberExpression(node);
                 if (styleRef) {
                     styleReferences.add(styleRef);
                 }
             },
 
             CallExpression: function (node) {
-                if (astHelpers.isStyleSheetDeclaration(node)) {
-                    const styleSheetName = astHelpers.getStyleSheetName(node);
-                    const styles = astHelpers.getStyleDeclarations(node);
+                if (stylesASTHelpers.isStyleSheetDeclaration(node)) {
+                    const styleSheetName = stylesASTHelpers.getStyleSheetName(node);
+                    const styles = stylesASTHelpers.getStyleDeclarations(node);
                     if (styleSheetName) {
                         styleSheets.add(styleSheetName, styles);
                     }

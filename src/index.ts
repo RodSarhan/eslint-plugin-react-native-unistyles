@@ -38,7 +38,7 @@ const plugin: ESLint.Plugin = {
                     ['react-native-unistyles/sort-styles']: [
                         'error',
                         'asc',
-                        {ignoreClassNames: false, ignoreStyleProperties: false},
+                        {ignoreStyleNames: false, ignoreStyleProperties: false},
                     ],
                 },
                 languageOptions: {parserOptions: {ecmaFeatures: {jsx: true}}},
@@ -52,7 +52,7 @@ const plugin: ESLint.Plugin = {
                 ['react-native-unistyles/sort-styles']: [
                     'error',
                     'asc',
-                    {ignoreClassNames: false, ignoreStyleProperties: false},
+                    {ignoreStyleNames: false, ignoreStyleProperties: false},
                 ],
             },
             parserOptions: {ecmaFeatures: {jsx: true}},

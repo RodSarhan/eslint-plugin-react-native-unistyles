@@ -1,7 +1,7 @@
 import {AST_NODE_TYPES, type ESLintUtils, type TSESTree} from '@typescript-eslint/utils';
 import type {RuleContext, SourceCode} from '@typescript-eslint/utils/ts-eslint';
 
-class Components {
+export class Components {
     private list: Record<string, {node: TSESTree.Node; confidence: number}> = {};
 
     /**
@@ -260,7 +260,6 @@ type PassedRuleType<ContextType extends RuleContext<string, readonly unknown[]>>
  * 1. Takes a rule factory function as input
  * 2. Returns a new function that creates enhanced ESLint rules
  */
-
 export const enhanceRuleWithComponentDetection: <
     ContextType extends RuleContext<string, readonly unknown[]>,
     Options extends readonly unknown[],
@@ -343,6 +342,7 @@ export const enhanceRuleWithComponentDetection: <
                 components.add(parentNode, 0);
             },
 
+            // Check all return statements
             ReturnStatement(node) {
                 if (!utils.isJSXReturnStatement(node)) {
                     return;
@@ -369,4 +369,4 @@ export const enhanceRuleWithComponentDetection: <
     };
 };
 
-export default Components;
+export const componentsUtils = {enhanceRuleWithComponentDetection};

@@ -51,7 +51,7 @@ export default defineConfig([
         'warn',
         'asc',
         {
-          ignoreClassNames: false,
+          ignoreStyleNames: false,
           ignoreStyleProperties: false
         }
       ],
@@ -81,7 +81,7 @@ For older ESLint versions:
       "warn",
       "asc",
       {
-        "ignoreClassNames": false,
+        "ignoreStyleNames": false,
         "ignoreStyleProperties": false
       }
     ]

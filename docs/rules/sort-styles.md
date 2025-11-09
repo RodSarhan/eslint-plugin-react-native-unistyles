@@ -2,7 +2,7 @@
 
 It's like [sort-keys](https://eslint.org/docs/rules/sort-keys), but just for react-native-unistyles.
 
-Keeping your style definitions sorted is a common convention that helps with readability. This rule lets you enforce an ascending (default) or descending alphabetical order for both "class names" and style properties.
+Keeping your style definitions sorted is a common convention that helps with readability. This rule lets you enforce an ascending (default) or descending alphabetical order for both style names and inner style properties.
 
 ## Rule Details
 
@@ -46,19 +46,19 @@ const styles = StyleSheet.create({
 
 ```typescript
 {
-    "react-native-unistyles/sort-styles": ["error", "asc", { "ignoreClassNames": false, "ignoreStyleProperties": false }]
+    "react-native-unistyles/sort-styles": ["error", "asc", { "ignoreStyleNames": false, "ignoreStyleProperties": false }]
 }
 ```
 
 The 1st option is "asc" or "desc".
 
-* `"asc"` (default) - enforce properties to be in ascending order.
-* `"desc"` - enforce properties to be in descending order.
+* `"asc"`  - enforce ascending order (default).
+* `"desc"` - enforce descending order.
 
 The 2nd option is an object which has 2 properties.
 
-* `ignoreClassNames` - if `true`, order will not be enforced on the class name level. Default is `false`.
-* `ignoreStyleProperties` - if `true`, order will not be enforced on the style property level. Default is `false`.
+* `ignoreStyleNames` - if `true`, order will not be enforced on the style names level. Default is `false`.
+* `ignoreStyleProperties` - if `true`, order will not be enforced on the inner style properties level. Default is `false`.
 
 ### desc
 
@@ -100,9 +100,9 @@ const styles = StyleSheet.create({
 });
 ```
 
-### ignoreClassNames
+### ignoreStyleNames
 
-`/* eslint react-native-unistyles/sort-styles: ["error", "asc", { "ignoreClassNames": true }] */`
+`/* eslint react-native-unistyles/sort-styles: ["error", "asc", { "ignoreStyleNames": true }] */`
 
 The following patterns are not considered warnings:
 
